@@ -23,3 +23,6 @@ dependencies = [
 
 [tool.setuptools.dynamic]
 version = {attr = "my_package.VERSION"}
+
+[tool.setuptools]
+py-modules = []
