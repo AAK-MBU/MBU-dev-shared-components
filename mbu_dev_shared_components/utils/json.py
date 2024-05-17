@@ -18,8 +18,8 @@ class JSONManipulator:
     transform_all_lists(json_obj: List[Union[List[Any], Dict[str, Any]]], key_map: List[str]) -> List[Union[Dict[str, Any], Any]]:
         Transforms all lists in the JSON object into dictionaries with specified keys.
 
-    add_key_value(json_obj: List[Union[List[Any], Dict[str, Any]]], keys: List[str], value: Any) -> List[Union[Dict[str, Any], Any]]:
-        Adds a new key-value pair to the JSON object, supporting nested JSON structures.
+    add_key_value_to_node(node: Union[Dict[str, Any], List[Any]], key_value_pairs: Dict[str, Any]) -> None:
+        Adds key-value pairs to a node in a JSON structure, supporting nested JSON structures.
     """
 
     @staticmethod
@@ -53,43 +53,61 @@ class JSONManipulator:
         return json_obj
 
     @staticmethod
-    def add_key_value(json_obj: List[Union[List[Any], Dict[str, Any]]], keys: List[str], value: Any) -> List[Union[Dict[str, Any], Any]]:
+    def add_key_value_to_node(node: Union[Dict[str, Any], List[Any]], key_value_pairs: Dict[str, Any]) -> None:
         """
-        Adds a new key-value pair to the JSON object, supporting nested JSON structures.
+        Adds key-value pairs to a node in a JSON structure, supporting nested JSON structures.
 
         Parameters
         ----------
-        json_obj : list
-            The JSON object to be manipulated.
-        keys : list
-            The list of keys representing the path to where the value should be added.
-        value : Any
-            The value to be added.
+        node : Union[dict, list]
+            The JSON node to be manipulated.
+        key_value_pairs : dict
+            A dictionary of key-value pairs to be added to the node.
 
-        Returns
+        Example
         -------
-        list
-            The updated JSON object with the new key-value pair added.
+        >>> json_data = {"name": "John Doe"}
+        >>> key_value_pairs = {"institution_number": "1234", "nested": {"key": "value"}}
+        >>> JSONManipulator.add_key_value_to_node(json_data, key_value_pairs)
+        >>> print(json.dumps(json_data, indent=4))
+        {
+            "name": "John Doe",
+            "institution_number": "1234",
+            "nested": {
+                "key": "value"
+            }
+        }
         """
-        if not isinstance(json_obj, list):
-            raise TypeError(f"The input must be a list. Received: {type(json_obj).__name__}")
+        def add_key_values(target: Union[Dict[str, Any], List[Any]], pairs: Dict[str, Any]) -> None:
+            """
+            Recursively adds key-value pairs to the target JSON node.
 
-        d = json_obj
-        for key in keys[:-1]:
-            found = False
-            for item in d:
-                if isinstance(item, dict) and key in item:
-                    d = item[key]
-                    found = True
-                    break
-            if not found:
-                new_dict = {}
-                d.append({key: new_dict})
-                d = new_dict
+            Parameters
+            ----------
+            target : Union[dict, list]
+                The target JSON node to be manipulated.
+            pairs : dict
+                A dictionary of key-value pairs to be added to the target.
+            """
+            for key, value in pairs.items():
+                if isinstance(value, dict):
+                    if isinstance(target, list):
+                        for item in target:
+                            if isinstance(item, dict) and key in item:
+                                add_key_values(item[key], value)
+                            elif isinstance(item, dict):
+                                item[key] = {}
+                                add_key_values(item[key], value)
+                    else:
+                        if key not in target or not isinstance(target[key], dict):
+                            target[key] = {}
+                        add_key_values(target[key], value)
+                else:
+                    if isinstance(target, list):
+                        for item in target:
+                            if isinstance(item, dict):
+                                item[key] = value
+                    else:
+                        target[key] = value
 
-        if isinstance(d, dict):
-            d[keys[-1]] = value
-        else:
-            d.append({keys[-1]: value})
-
-        return json_obj
+        add_key_values(node, key_value_pairs)
