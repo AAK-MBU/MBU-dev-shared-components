@@ -41,6 +41,9 @@ class ExcelReader:
 
     Methods:
     --------
+    read_cell(sheet_name: str, cell_reference: str) -> str:
+        Reads a specific cell from a given sheet.
+
     read_cells(sheet_name: str, cell_references: List[str]) -> List[Any]:
         Reads specific cells from a given sheet.
 
@@ -65,6 +68,26 @@ class ExcelReader:
         """
         self.file_path = file_path
         self.workbook = load_workbook(filename=file_path)
+
+    def read_cell(self, sheet_name: str, cell_reference: str) -> str:
+        """
+        Reads a specific cell from a given sheet.
+
+        Parameters:
+        -----------
+        sheet_name : str
+            The name of the sheet to read from.
+        cell_reference : str
+            A list of cell references to read (e.g., ['A1', 'B2']).
+
+        Returns:
+        --------
+        str
+            The value from the specified cell as a string.
+        """
+        sheet = self.workbook[sheet_name]
+        data = sheet[cell_reference].value
+        return str(data) if data is not None else ""
 
     def read_cells(self, sheet_name: str, cell_references: List[str]) -> List[Any]:
         """
