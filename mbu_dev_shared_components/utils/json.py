@@ -19,7 +19,7 @@ class JSONManipulator:
         Transforms all lists in the JSON object into dictionaries with specified keys.
 
     add_key_value(json_obj: Dict[str, Any], keys: List[str], value: Any) -> Dict[str, Any]:
-            Adds a new key-value pair to the JSON object, supporting nested JSON structures.
+        Adds a new key-value pair to the JSON object, supporting nested JSON structures.
     """
 
     @staticmethod
@@ -72,7 +72,7 @@ class JSONManipulator:
             The updated JSON object with the new key-value pair added.
         """
         if not isinstance(json_obj, dict):
-            raise TypeError("The input must be a dictionary.")
+            raise TypeError(f"The input must be a dictionary. Received: {type(json_obj).__name__}")
 
         d = json_obj
         for key in keys[:-1]:
