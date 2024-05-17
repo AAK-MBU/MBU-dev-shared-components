@@ -113,7 +113,7 @@ class ExcelReader:
         for row in sheet.iter_rows(min_col=self._col_to_index(start_col),
                                    max_col=self._col_to_index(end_col),
                                    min_row=start_row):
-            row_data = [cell.value for cell in row if cell.value is not None]
+            row_data = [str(cell.value) for cell in row if cell.value is not None]
             data.append(row_data)
 
         if rows_to_remove > 0:
