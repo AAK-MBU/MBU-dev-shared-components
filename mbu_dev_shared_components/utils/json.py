@@ -6,6 +6,7 @@ The primary class in this module is JSONManipulator, which contains methods for
 converting lists associated with keys in a JSON object into dictionaries. This
 is useful for restructuring JSON data into a more readable and accessible format.
 """
+import json
 from typing import Any, Dict, List, Union
 
 
@@ -18,8 +19,8 @@ class JSONManipulator:
     transform_all_lists(json_obj: List[Union[List[Any], Dict[str, Any]]], key_map: List[str]) -> List[Union[Dict[str, Any], Any]]:
         Transforms all lists in the JSON object into dictionaries with specified keys.
 
-    add_key_value_to_node(node: Union[Dict[str, Any], List[Any]], key_value_pairs: Dict[str, Any]) -> None:
-        Adds key-value pairs to a node in a JSON structure, supporting nested JSON structures.
+    insert_key_value_pairs(json_obj: Union[Dict[str, Any], List], key_value_pairs: Dict[str, Any]) -> Union[Dict[str, Any], List]:
+        Inserts key-value pairs into each node of the JSON object, including nested nodes.
     """
 
     @staticmethod
@@ -31,6 +32,7 @@ class JSONManipulator:
         ----------
         json_obj : list
             The JSON object to be manipulated.
+
         key_map : list
             The list of keys to be used for the new dictionaries.
 
@@ -53,58 +55,48 @@ class JSONManipulator:
         return json_obj
 
     @staticmethod
-    def add_key_value_to_node(node: Union[Dict[str, Any], List[Any]], key_value_pairs: Dict[str, Any]) -> None:
+    def insert_key_value_pairs(json_obj: Union[str, Dict[str, Any], List], key_value_pairs: Dict[str, Any]) -> Union[Dict[str, Any], List]:
         """
-        Adds key-value pairs to a node in a JSON structure, supporting nested JSON structures.
+        Inserts key-value pairs into the top level of the JSON object, and nested level if specified.
 
         Parameters
         ----------
-        node : Union[dict, list]
-            The JSON node to be manipulated.
-        key_value_pairs : dict
-            A dictionary of key-value pairs to be added to the node.
+        json_obj : Union[str, Dict[str, Any], List]
+            The JSON object to be manipulated, either as a JSON string, a dictionary, or a list.
 
-        Example
+        key_value_pairs : Dict[str, Any]
+            The key-value pairs to be inserted into the JSON object.
+
+        Returns
         -------
-        >>> json_data = {"name": "John Doe"}
-        >>> key_value_pairs = {"institution_number": "1234", "nested": {"key": "value"}}
-        >>> JSONManipulator.add_key_value_to_node(json_data, key_value_pairs)
-        >>> print(json.dumps(json_data, indent=4))
-        {
-            "name": "John Doe",
-            "institution_number": "1234",
-            "nested": {
-                "key": "value"
-            }
-        }
+        Union[Dict[str, Any], List]
+            The updated JSON object with the inserted key-value pairs.
         """
+        if isinstance(json_obj, str):
+            json_obj = json.loads(json_obj)
 
-        def add_key_values(target: Union[Dict[str, Any], List[Any]], pairs: Dict[str, Any]) -> None:
-            """
-            Recursively adds key-value pairs to the target JSON node.
+        def insert_pairs(target_obj: Union[Dict[str, Any], List], pairs: Dict[str, Any]):
+            if isinstance(target_obj, dict):
+                for key, value in pairs.items():
+                    target_obj[key] = value
+            elif isinstance(target_obj, list):
+                for item in target_obj:
+                    if isinstance(item, (dict, list)):
+                        insert_pairs(item, pairs)
+            else:
+                raise TypeError("The input must be a dictionary or a list.")
 
-            Parameters
-            ----------
-            target : Union[dict, list]
-                The target JSON node to be manipulated.
-            pairs : dict
-                A dictionary of key-value pairs to be added to the target.
-            """
-            for key, value in pairs.items():
-                if isinstance(value, dict):
-                    if key not in target or not isinstance(target[key], dict):
-                        target[key] = {}
-                    add_key_values(target[key], value)
+        if isinstance(json_obj, dict):
+            for key, value in key_value_pairs.items():
+                if isinstance(value, dict) and key in json_obj:
+                    insert_pairs(json_obj[key], value)
                 else:
-                    if isinstance(target, dict):
-                        target[key] = value
-                    elif isinstance(target, list):
-                        for item in target:
-                            if isinstance(item, dict):
-                                item[key] = value
-                            else:
-                                raise TypeError(f"Cannot assign key-value pair to a non-dict item in list: {item}")
-                    else:
-                        raise TypeError(f"Cannot assign key-value pair to non-dict, non-list target: {target}")
+                    json_obj[key] = value
+        elif isinstance(json_obj, list):
+            for item in json_obj:
+                if isinstance(item, (dict, list)):
+                    JSONManipulator.insert_key_value_pairs(item, key_value_pairs)
+        else:
+            raise TypeError("The input must be a dictionary or a list.")
 
-        add_key_values(node, key_value_pairs)
+        return json_obj
