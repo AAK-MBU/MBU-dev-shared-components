@@ -15,51 +15,51 @@ class JSONManipulator:
 
     Methods
     -------
-    transform_all_lists(json_obj: Dict[str, Union[List[Any], Dict[str, Any]]], key_map: List[str]) -> Dict[str, Dict[str, Any]]:
+    transform_all_lists(json_obj: List[Union[List[Any], Dict[str, Any]]], key_map: List[str]) -> List[Union[Dict[str, Any], Any]]:
         Transforms all lists in the JSON object into dictionaries with specified keys.
 
-    add_key_value(json_obj: Dict[str, Any], keys: List[str], value: Any) -> Dict[str, Any]:
+    add_key_value(json_obj: List[Union[List[Any], Dict[str, Any]]], keys: List[str], value: Any) -> List[Union[Dict[str, Any], Any]]:
         Adds a new key-value pair to the JSON object, supporting nested JSON structures.
     """
 
     @staticmethod
-    def transform_all_lists(json_obj: Dict[str, Union[List[Any], Dict[str, Any]]], key_map: List[str]) -> Dict[str, Dict[str, Any]]:
+    def transform_all_lists(json_obj: List[Union[List[Any], Dict[str, Any]]], key_map: List[str]) -> List[Union[Dict[str, Any], Any]]:
         """
         Transforms all lists in the JSON object into dictionaries with specified keys.
 
         Parameters
         ----------
-        json_obj : dict
+        json_obj : list
             The JSON object to be manipulated.
         key_map : list
             The list of keys to be used for the new dictionaries.
 
         Returns
         -------
-        dict
+        list
             The updated JSON object with the transformed key-value pairs for all lists.
         """
-        if not isinstance(json_obj, dict):
-            raise TypeError("The input must be a dictionary.")
+        if not isinstance(json_obj, list):
+            raise TypeError("The input must be a list.")
 
-        for key, value in json_obj.items():
-            if isinstance(value, list):
-                if len(value) == len(key_map):
-                    json_obj[key] = {key_map[i]: value[i] for i in range(len(key_map))}
+        for i, item in enumerate(json_obj):
+            if isinstance(item, list):
+                if len(item) == len(key_map):
+                    json_obj[i] = {key_map[j]: item[j] for j in range(len(key_map))}
                 else:
-                    raise ValueError(f"The length of the list for key '{key}' and the key_map must match.")
-            else:
-                raise TypeError(f"The value for key '{key}' is not a list.")
+                    raise ValueError(f"The length of the list at index {i} and the key_map must match.")
+            elif isinstance(item, dict):
+                JSONManipulator.transform_all_lists(list(item.values()), key_map)
         return json_obj
 
     @staticmethod
-    def add_key_value(json_obj: Dict[str, Any], keys: List[str], value: Any) -> Dict[str, Any]:
+    def add_key_value(json_obj: List[Union[List[Any], Dict[str, Any]]], keys: List[str], value: Any) -> List[Union[Dict[str, Any], Any]]:
         """
         Adds a new key-value pair to the JSON object, supporting nested JSON structures.
 
         Parameters
         ----------
-        json_obj : dict
+        json_obj : list
             The JSON object to be manipulated.
         keys : list
             The list of keys representing the path to where the value should be added.
@@ -68,17 +68,28 @@ class JSONManipulator:
 
         Returns
         -------
-        dict
+        list
             The updated JSON object with the new key-value pair added.
         """
-        if not isinstance(json_obj, dict):
-            raise TypeError(f"The input must be a dictionary. Received: {type(json_obj).__name__}")
+        if not isinstance(json_obj, list):
+            raise TypeError(f"The input must be a list. Received: {type(json_obj).__name__}")
 
         d = json_obj
         for key in keys[:-1]:
-            if key not in d or not isinstance(d[key], dict):
-                d[key] = {}
-            d = d[key]
+            found = False
+            for item in d:
+                if isinstance(item, dict) and key in item:
+                    d = item[key]
+                    found = True
+                    break
+            if not found:
+                new_dict = {}
+                d.append({key: new_dict})
+                d = new_dict
 
-        d[keys[-1]] = value
+        if isinstance(d, dict):
+            d[keys[-1]] = value
+        else:
+            d.append({keys[-1]: value})
+
         return json_obj
