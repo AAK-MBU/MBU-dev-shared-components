@@ -144,7 +144,7 @@ class ExcelReader:
             JSON string representing the structured row data.
         """
         row_data = self.read_rows(sheet_name, start_col, end_col, start_row, rows_to_remove)
-        json_data = {row_data[i] for i in range(len(row_data))}
+        json_data = {"row_" + str(i + start_row): row_data[i] for i in range(len(row_data))}
         return json.dumps(json_data, indent=4, ensure_ascii=False)
 
     def get_row_count(self, data: List[List[Any]]) -> int:
