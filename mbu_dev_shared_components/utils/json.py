@@ -78,6 +78,7 @@ class JSONManipulator:
             }
         }
         """
+
         def add_key_values(target: Union[Dict[str, Any], List[Any]], pairs: Dict[str, Any]) -> None:
             """
             Recursively adds key-value pairs to the target JSON node.
@@ -91,23 +92,19 @@ class JSONManipulator:
             """
             for key, value in pairs.items():
                 if isinstance(value, dict):
-                    if isinstance(target, list):
-                        for item in target:
-                            if isinstance(item, dict) and key in item:
-                                add_key_values(item[key], value)
-                            elif isinstance(item, dict):
-                                item[key] = {}
-                                add_key_values(item[key], value)
-                    else:
-                        if key not in target or not isinstance(target[key], dict):
-                            target[key] = {}
-                        add_key_values(target[key], value)
+                    if key not in target or not isinstance(target[key], dict):
+                        target[key] = {}
+                    add_key_values(target[key], value)
                 else:
-                    if isinstance(target, list):
+                    if isinstance(target, dict):
+                        target[key] = value
+                    elif isinstance(target, list):
                         for item in target:
                             if isinstance(item, dict):
                                 item[key] = value
+                            else:
+                                raise TypeError(f"Cannot assign key-value pair to a non-dict item in list: {item}")
                     else:
-                        target[key] = value
+                        raise TypeError(f"Cannot assign key-value pair to non-dict, non-list target: {target}")
 
         add_key_values(node, key_value_pairs)
