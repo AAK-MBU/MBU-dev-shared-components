@@ -6,7 +6,7 @@ The primary class in this module is JSONManipulator, which contains methods for
 converting lists associated with keys in a JSON object into dictionaries. This
 is useful for restructuring JSON data into a more readable and accessible format.
 """
-from typing import Any, Dict, Union
+from typing import Any, Dict, Union, List
 
 
 class JSONManipulator:
