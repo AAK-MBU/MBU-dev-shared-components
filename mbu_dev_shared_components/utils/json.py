@@ -17,6 +17,9 @@ class JSONManipulator:
     -------
     transform_all_lists(json_obj: Dict[str, Union[List[Any], Dict[str, Any]]], key_map: List[str]) -> Dict[str, Dict[str, Any]]:
         Transforms all lists in the JSON object into dictionaries with specified keys.
+
+    add_key_value(json_obj: Dict[str, Any], keys: List[str], value: Any) -> Dict[str, Any]:
+            Adds a new key-value pair to the JSON object, supporting nested JSON structures.
     """
 
     @staticmethod
@@ -47,4 +50,35 @@ class JSONManipulator:
                     raise ValueError(f"The length of the list for key '{key}' and the key_map must match.")
             else:
                 raise TypeError(f"The value for key '{key}' is not a list.")
+        return json_obj
+
+    @staticmethod
+    def add_key_value(json_obj: Dict[str, Any], keys: List[str], value: Any) -> Dict[str, Any]:
+        """
+        Adds a new key-value pair to the JSON object, supporting nested JSON structures.
+
+        Parameters
+        ----------
+        json_obj : dict
+            The JSON object to be manipulated.
+        keys : list
+            The list of keys representing the path to where the value should be added.
+        value : Any
+            The value to be added.
+
+        Returns
+        -------
+        dict
+            The updated JSON object with the new key-value pair added.
+        """
+        if not isinstance(json_obj, dict):
+            raise TypeError("The input must be a dictionary.")
+
+        d = json_obj
+        for key in keys[:-1]:
+            if key not in d or not isinstance(d[key], dict):
+                d[key] = {}
+            d = d[key]
+
+        d[keys[-1]] = value
         return json_obj
