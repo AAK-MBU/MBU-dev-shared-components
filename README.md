@@ -15,7 +15,7 @@ generalized to be useful for others as well.
 ## Integrations
 
 ### Office365
-#### SharePoint
+#### - SharePoint
 
 Helper functions for using SharePoint api. A few examples include:
 
@@ -25,7 +25,7 @@ Helper functions for using SharePoint api. A few examples include:
 - Get files from folder.
 
 
-#### Excel
+#### - Excel
 
 This module provides the ExcelReader class to read data from Excel files with .xlsx format.
 
@@ -39,7 +39,7 @@ Additionally, it provides functionalities to count the total number of rows and 
 
 
 ### SAP
-#### Invoices
+#### - Invoices
 
 This module provides the InvoiceCreator class to create invoices in SAP.
 
@@ -49,7 +49,7 @@ The InvoiceCreator class offers methods to open a specified business partner, an
 - Create invoice
 
 ### Utils
-#### JSON
+#### - JSON
 This module provides a class for manipulating JSON objects by transforming lists
 within the JSON into dictionaries with specified keys.
 
