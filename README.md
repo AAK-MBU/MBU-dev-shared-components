@@ -1,4 +1,4 @@
-# mub-dev-shared-components
+# mbu-dev-shared-components
 
 ## Installation
 
