@@ -1,0 +1,71 @@
+"""This module has functions to do with case related calls
+to the GetOrganized api."""
+from typing import Dict, Any
+import requests
+from mbu_dev_shared_components.getorganized.auth import get_ntlm_go_api_credentials
+
+
+def find_case_by_case_properties(case_data: Dict[str, Any], api_endpoint: str, api_username: str, api_password: str) -> Dict[str, Any]:
+    """
+    Sends a POST request to search for cases based on specific case properties provided in `case_data`.
+
+    Parameters:
+    case_data (Dict[str, Any]): A dictionary containing case properties to filter cases by in the API search.
+    api_endpoint (str): GetOrganized API endpoint.
+    api_username (str): The API username for GetOrganized API.
+    api_password (str): The API password for GetOrganized API.
+
+    Returns:
+    Dict[str, Any]: The JSON response from the API containing the search results.
+
+    Raises:
+    requests.RequestException: If the HTTP request fails for any reason.
+    """
+    headers = {"Content-Type": "application/json"}
+    response = requests.request(method='POST', url=api_endpoint, headers=headers, json=case_data, auth=get_ntlm_go_api_credentials(api_username, api_password), timeout=60)
+
+    return response.json()
+
+
+def create_case_folder(case_data: Dict[str, Any], api_endpoint: str, api_username: str, api_password: str) -> Dict[str, Any]:
+    """
+    Sends a POST request to create a new case folder with the provided `case_data`.
+
+    Parameters:
+    case_data (Dict[str, Any]): A dictionary containing the data required to create a new case folder.
+    api_endpoint (str): GetOrganized API endpoint.
+    api_username (str): The API username for GetOrganized API.
+    api_password (str): The API password for GetOrganized API.
+
+    Returns:
+    Dict[str, Any]: The JSON response from the API confirming the creation of the case folder.
+
+    Raises:
+    requests.RequestException: If the HTTP request fails for any reason.
+    """
+    headers = {"Content-Type": "application/json"}
+    response = requests.request(method='POST', url=api_endpoint, headers=headers, json=case_data, auth=get_ntlm_go_api_credentials(api_username, api_password), timeout=60)
+
+    return response.json()
+
+
+def create_case(case_data: Dict[str, Any], api_endpoint: str, api_username: str, api_password: str) -> Dict[str, Any]:
+    """
+    Sends a POST request to create a new case in the system with the specified `case_data`.
+
+    Parameters:
+    case_data (Dict[str, Any]): A dictionary containing the data required to create a new case.
+    api_endpoint (str): GetOrganized API endpoint.
+    api_username (str): The API username for GetOrganized API.
+    api_password (str): The API password for GetOrganized API.
+
+    Returns:
+    Dict[str, Any]: The JSON response from the API confirming the creation of the case.
+
+    Raises:
+    requests.RequestException: If the HTTP request fails for any reason.
+    """
+    headers = {"Content-Type": "application/json"}
+    response = requests.request(method='POST', url=api_endpoint, headers=headers, json=case_data, auth=get_ntlm_go_api_credentials(api_username, api_password), timeout=60)
+
+    return response.json()
