@@ -17,7 +17,7 @@ def contact_lookup(person_ssn: str, api_endpoint: str, api_username: str, api_pa
     api_password (str): The API password for GetOrganized API.
 
     Returns:
-    Dict[str, Any]: The JSON response from the API containing the contact details associated with the provided SSN.
+    requests.Response: The response object from the API.
 
     Raises:
     requests.Response: The response object from the API.
