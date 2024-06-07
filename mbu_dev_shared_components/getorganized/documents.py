@@ -4,7 +4,7 @@ import requests
 from mbu_dev_shared_components.getorganized.auth import get_ntlm_go_api_credentials
 
 
-def upload_file_to_case(file_data: Dict[str, Any], api_endpoint: str, api_username: str, api_password: str) -> Dict[str, Any]:
+def upload_file_to_case(file_data: Dict[str, Any], api_endpoint: str, api_username: str, api_password: str) -> requests.Response:
     """
     Uploads a file to a case by sending file data as a JSON payload to a specific API endpoint.
     The function uses NTLM authentication and expects an environment variable for the API base URL.
@@ -16,7 +16,7 @@ def upload_file_to_case(file_data: Dict[str, Any], api_endpoint: str, api_userna
     api_password (str): The API password for GetOrganized API.
 
     Returns:
-    Dict[str, Any]: The JSON response from the API, typically containing information about the success or failure of the file upload.
+    requests.Response: The response object from the API.
 
     Raises:
     requests.RequestException: If the HTTP request fails for any reason.
@@ -24,7 +24,7 @@ def upload_file_to_case(file_data: Dict[str, Any], api_endpoint: str, api_userna
     headers = {'Content-Type': 'application/json'}
     response = requests.request(method='POST', url=api_endpoint, headers=headers, json=file_data, auth=get_ntlm_go_api_credentials(api_username, api_password), timeout=60)
 
-    return response.json()
+    return response
 
 
 def mark_file_as_case_record(documents_id: list, api_endpoint: str, api_username: str, api_password: str) -> Dict[str, Any]:

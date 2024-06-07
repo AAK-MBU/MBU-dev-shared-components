@@ -1,4 +1,5 @@
-"""This module contains classes relating to GetOrganized cases and documents."""
+"""This module contains classes relating data to be used in api request to
+GetOrganized when working with cases and documents."""
 import json
 from typing import Literal
 
@@ -6,7 +7,7 @@ from typing import Literal
 CaseTypePrefix = Literal["BOR", "EMN", "PPR", "AKT", "ELM", "PER", "GEO", "SAM", "MOD"]
 
 
-class CaseJsonCreator:
+class CaseDataJson:
     """
     A class responsible for creating JSON representations of case data structures for different types of cases.
 
@@ -29,9 +30,23 @@ class CaseJsonCreator:
             "MetadataXml": metadata_xml,
             "ReturnWhenCaseFullyCreated": return_when_case_fully_created
         }
-
         return json.dumps(case_data, ensure_ascii=False, indent=4)
 
+    def search_case_folder_data_json(self, metadata_xml: str) -> str:
+        """
+        Creates a JSON string representing a search string for case folder with the provided attributes.
+
+        Parameters:
+        case_type_prefix (CaseTypePrefix): The prefix indicating the type of the case. Must be one of the predefined literal values.
+        metadata_xml (str): XML-formatted string containing metadata associated with the case.
+
+        Returns:
+        str: A JSON formatted string representing the case with the specified attributes, ensuring non-ASCII characters are retained and output is indented for readability.
+        """
+        search_case_folder_data = {
+            "MetadataXml": metadata_xml,
+        }
+        return json.dumps(search_case_folder_data, ensure_ascii=False, indent=4)
 
 class DocumentJsonCreator:
     """
@@ -65,5 +80,4 @@ class DocumentJsonCreator:
             "Overwrite": overwrite,
             "Bytes": data_in_bytes
         }
-
         return json.dumps(document_data, ensure_ascii=False, indent=4)

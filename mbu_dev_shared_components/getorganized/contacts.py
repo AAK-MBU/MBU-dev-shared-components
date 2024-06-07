@@ -5,7 +5,7 @@ import requests
 from mbu_dev_shared_components.getorganized.auth import get_ntlm_go_api_credentials
 
 
-def contact_lookup(person_ssn: str, api_endpoint: str, api_username: str, api_password: str) -> Dict[str, Any]:
+def contact_lookup(person_ssn: str, api_endpoint: str, api_username: str, api_password: str) -> requests.Response:
     """
     Searches for contact information based on the person's Social Security Number (SSN) through a POST request.
     The function constructs the request by encoding the SSN and a fixed field name into the request body.
@@ -20,7 +20,7 @@ def contact_lookup(person_ssn: str, api_endpoint: str, api_username: str, api_pa
     Dict[str, Any]: The JSON response from the API containing the contact details associated with the provided SSN.
 
     Raises:
-    requests.RequestException: If the HTTP request fails for any reason.
+    requests.Response: The response object from the API.
 
     Notes:
     The 'ContactDataFieldName' is set to 'CCMContactData' as a fixed query parameter for this particular API endpoint.
@@ -30,4 +30,4 @@ def contact_lookup(person_ssn: str, api_endpoint: str, api_username: str, api_pa
     encoded_body = '&'.join([f"{key}={value}" for key, value in body.items()])
     response = requests.request(method='POST', url=api_endpoint, headers=headers, data=encoded_body, auth=get_ntlm_go_api_credentials(api_username, api_password), timeout=60)
 
-    return response.json()
+    return response
