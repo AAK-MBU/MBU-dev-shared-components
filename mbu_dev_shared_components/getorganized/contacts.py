@@ -20,7 +20,7 @@ def contact_lookup(person_ssn: str, api_endpoint: str, api_username: str, api_pa
     requests.Response: The response object from the API.
 
     Raises:
-    requests.Response: The response object from the API.
+    requests.RequestException: If the HTTP request fails for any reason.
 
     Notes:
     The 'ContactDataFieldName' is set to 'CCMContactData' as a fixed query parameter for this particular API endpoint.
