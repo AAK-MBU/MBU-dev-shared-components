@@ -1,10 +1,8 @@
 """This module contains classes relating data to be used in api request to
 GetOrganized when working with cases and documents."""
 import json
+import dataclasses
 from typing import Literal
-
-
-CaseTypePrefix = Literal["BOR", "EMN", "PPR", "AKT", "ELM", "PER", "GEO", "SAM", "MOD"]
 
 
 class CaseDataJson:
@@ -13,6 +11,9 @@ class CaseDataJson:
 
     This class provides a method to serialize case data into a JSON format.
     """
+
+    CaseTypePrefix = Literal["BOR", "EMN", "PPR", "AKT", "ELM", "PER", "GEO", "SAM", "MOD"]
+
     def case_data_json(self, case_type_prefix: CaseTypePrefix, metadata_xml: str, return_when_case_fully_created: bool) -> str:
         """
         Creates a JSON string representing a case with the provided attributes.
@@ -32,7 +33,7 @@ class CaseDataJson:
         }
         return json.dumps(case_data, ensure_ascii=False, indent=4)
 
-    def search_case_folder_data_json(self, case_type_prefix: CaseTypePrefix, person_full_name: str, person_id: str, person_ssn: str)) -> str:
+    def search_case_folder_data_json(self, case_type_prefix: CaseTypePrefix, person_full_name: str, person_id: str, person_ssn: str) -> str:
         """
         Creates a JSON string representing a search string for case folder with the provided attributes.
 
@@ -69,6 +70,8 @@ class CaseDataJson:
             }
         return json.dumps(search_case_folder_data, ensure_ascii=False, indent=4)
 
+
+@dataclasses.dataclass
 class DocumentJsonCreator:
     """
     A class responsible for creating JSON representations of document data structures
