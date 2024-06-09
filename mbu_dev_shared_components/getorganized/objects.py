@@ -5,15 +5,15 @@ import dataclasses
 from typing import Literal
 
 
+CaseTypePrefix = Literal["BOR", "EMN", "PPR", "AKT", "ELM", "PER", "GEO", "SAM", "MOD"]
+
+
 class CaseDataJson:
     """
     A class responsible for creating JSON representations of case data structures for different types of cases.
 
     This class provides a method to serialize case data into a JSON format.
     """
-
-    CaseTypePrefix = Literal["BOR", "EMN", "PPR", "AKT", "ELM", "PER", "GEO", "SAM", "MOD"]
-
     def case_data_json(self, case_type_prefix: CaseTypePrefix, metadata_xml: str, return_when_case_fully_created: bool) -> str:
         """
         Creates a JSON string representing a case with the provided attributes.
