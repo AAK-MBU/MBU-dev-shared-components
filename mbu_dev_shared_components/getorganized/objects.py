@@ -2,9 +2,8 @@
 This module contains classes relating data to be used in API requests to
 GetOrganized when working with cases and documents.
 """
-import json
 import dataclasses
-from typing import Literal, Dict, Any
+from typing import Literal
 
 
 CaseTypePrefix = Literal["BOR", "EMN", "PPR", "AKT", "ELM", "PER", "GEO", "SAM", "MOD"]
@@ -16,7 +15,7 @@ class CaseDataJson:
 
     This class provides a method to serialize case data into a JSON format.
     """
-    def case_data_json(self, case_type_prefix: CaseTypePrefix, metadata_xml: str, return_when_case_fully_created: bool) -> Dict[str, Any]:
+    def case_data_json(self, case_type_prefix: CaseTypePrefix, metadata_xml: str, return_when_case_fully_created: bool) -> str:
         """
         Creates a JSON string representing a case with the provided attributes.
 
@@ -33,9 +32,9 @@ class CaseDataJson:
             "MetadataXml": metadata_xml,
             "ReturnWhenCaseFullyCreated": return_when_case_fully_created
         }
-        return json.loads(case_data)
+        return case_data
 
-    def search_case_folder_data_json(self, case_type_prefix: CaseTypePrefix, person_full_name: str, person_id: str, person_ssn: str) -> Dict[str, Any]:
+    def search_case_folder_data_json(self, case_type_prefix: CaseTypePrefix, person_full_name: str, person_id: str, person_ssn: str) -> str:
         """
         Creates a JSON string representing a search string for case folder with the provided attributes.
 
@@ -72,7 +71,7 @@ class CaseDataJson:
             "ExcludeDeletedCases": "True",
             "ReturnCasesNumber": "1"
             }
-        return json.loads(search_case_folder_data)
+        return search_case_folder_data
 
 
 @dataclasses.dataclass
@@ -83,7 +82,7 @@ class DocumentJsonCreator:
 
     This class is used to serialize document attributes into a JSON format.
     """
-    def document_data_json(self, case_id: str, list_name: str, folder_path: str, filename: str, metadata: str, overwrite: bool, data_in_bytes: bytes) -> Dict[str, Any]:
+    def document_data_json(self, case_id: str, list_name: str, folder_path: str, filename: str, metadata: str, overwrite: bool, data_in_bytes: bytes) -> str:
         """
         Creates a JSON string representing a document with the provided attributes.
 
@@ -108,4 +107,4 @@ class DocumentJsonCreator:
             "Overwrite": overwrite,
             "Bytes": data_in_bytes
         }
-        return json.loads(document_data)
+        return document_data
