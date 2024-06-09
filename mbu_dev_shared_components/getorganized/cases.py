@@ -21,7 +21,7 @@ def find_case_by_case_properties(case_data: str, api_endpoint: str, api_username
     requests.RequestException: If the HTTP request fails for any reason.
     """
     headers = {"Content-Type": "application/json"}
-    response = requests.request(method='POST', url=api_endpoint, headers=headers, data=case_data, auth=get_ntlm_go_api_credentials(api_username, api_password), timeout=60)
+    response = requests.request(method='POST', url=api_endpoint, headers=headers, json=case_data, auth=get_ntlm_go_api_credentials(api_username, api_password), timeout=60)
 
     return response
 
@@ -43,7 +43,7 @@ def create_case_folder(case_data: str, api_endpoint: str, api_username: str, api
     requests.RequestException: If the HTTP request fails for any reason.
     """
     headers = {"Content-Type": "application/json"}
-    response = requests.request(method='POST', url=api_endpoint, headers=headers, data=case_data, auth=get_ntlm_go_api_credentials(api_username, api_password), timeout=60)
+    response = requests.request(method='POST', url=api_endpoint, headers=headers, json=case_data, auth=get_ntlm_go_api_credentials(api_username, api_password), timeout=60)
 
     return response
 
@@ -65,6 +65,6 @@ def create_case(case_data: str, api_endpoint: str, api_username: str, api_passwo
     requests.RequestException: If the HTTP request fails for any reason.
     """
     headers = {"Content-Type": "application/json"}
-    response = requests.request(method='POST', url=api_endpoint, headers=headers, data=case_data, auth=get_ntlm_go_api_credentials(api_username, api_password), timeout=60)
+    response = requests.request(method='POST', url=api_endpoint, headers=headers, json=case_data, auth=get_ntlm_go_api_credentials(api_username, api_password), timeout=60)
 
     return response

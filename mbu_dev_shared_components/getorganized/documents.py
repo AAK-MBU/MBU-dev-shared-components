@@ -21,7 +21,7 @@ def upload_file_to_case(file_data: str, api_endpoint: str, api_username: str, ap
     requests.RequestException: If the HTTP request fails for any reason.
     """
     headers = {'Content-Type': 'application/json'}
-    response = requests.request(method='POST', url=api_endpoint, headers=headers, data=file_data, auth=get_ntlm_go_api_credentials(api_username, api_password), timeout=60)
+    response = requests.request(method='POST', url=api_endpoint, headers=headers, json=file_data, auth=get_ntlm_go_api_credentials(api_username, api_password), timeout=60)
 
     return response
 
