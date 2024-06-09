@@ -1,6 +1,5 @@
 """This module has functions to do with contact related calls
 to the GetOrganized api."""
-from typing import Dict, Any
 import requests
 from mbu_dev_shared_components.getorganized.auth import get_ntlm_go_api_credentials
 
