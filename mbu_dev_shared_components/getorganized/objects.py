@@ -32,7 +32,7 @@ class CaseDataJson:
         }
         return json.dumps(case_data, ensure_ascii=False, indent=4)
 
-    def search_case_folder_data_json(self, metadata_xml: str) -> str:
+    def search_case_folder_data_json(self, case_type_prefix: CaseTypePrefix, person_full_name: str, person_id: str, person_ssn: str)) -> str:
         """
         Creates a JSON string representing a search string for case folder with the provided attributes.
 
@@ -44,8 +44,29 @@ class CaseDataJson:
         str: A JSON formatted string representing the case with the specified attributes, ensuring non-ASCII characters are retained and output is indented for readability.
         """
         search_case_folder_data = {
-            "MetadataXml": metadata_xml,
-        }
+            "FieldProperties": [
+                {
+                    "InternalName": "ows_CCMContactData",
+                    "Value": f"{person_full_name};#{person_id};#{person_ssn};#;#",
+                    "DataType": "Text",
+                    "ComparisonType": "Equal",
+                    "IsMultiValue": "False"
+                },
+                {
+                    "InternalName": "ows_CaseCategory",
+                    "Value": "Borgermappe",
+                    "DataType": "Text",
+                    "ComparisonType": "Equal",
+                    "IsMultiValue": "False"
+                }
+            ],
+            "CaseTypePrefixes": [
+                f"{case_type_prefix}"
+            ],
+            "LogicalOperator": "AND",
+            "ExcludeDeletedCases": "True",
+            "ReturnCasesNumber": "1"
+            }
         return json.dumps(search_case_folder_data, ensure_ascii=False, indent=4)
 
 class DocumentJsonCreator:
