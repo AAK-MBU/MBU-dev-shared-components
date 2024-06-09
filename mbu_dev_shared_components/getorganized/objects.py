@@ -1,8 +1,10 @@
-"""This module contains classes relating data to be used in api request to
-GetOrganized when working with cases and documents."""
+"""
+This module contains classes relating data to be used in API requests to
+GetOrganized when working with cases and documents.
+"""
 import json
 import dataclasses
-from typing import Literal
+from typing import Literal, Dict, Any
 
 
 CaseTypePrefix = Literal["BOR", "EMN", "PPR", "AKT", "ELM", "PER", "GEO", "SAM", "MOD"]
@@ -14,7 +16,7 @@ class CaseDataJson:
 
     This class provides a method to serialize case data into a JSON format.
     """
-    def case_data_json(self, case_type_prefix: CaseTypePrefix, metadata_xml: str, return_when_case_fully_created: bool) -> str:
+    def case_data_json(self, case_type_prefix: CaseTypePrefix, metadata_xml: str, return_when_case_fully_created: bool) -> Dict[str, Any]:
         """
         Creates a JSON string representing a case with the provided attributes.
 
@@ -24,25 +26,27 @@ class CaseDataJson:
         return_when_case_fully_created (bool): A flag indicating whether to wait for the case to be fully created before returning.
 
         Returns:
-        str: A JSON formatted string representing the case with the specified attributes, ensuring non-ASCII characters are retained and output is indented for readability.
+        dict: A dictionary representing the case data in JSON format.
         """
         case_data = {
             "CaseTypePrefix": case_type_prefix,
             "MetadataXml": metadata_xml,
             "ReturnWhenCaseFullyCreated": return_when_case_fully_created
         }
-        return json.dumps(case_data, ensure_ascii=False, indent=4)
+        return json.loads(case_data)
 
-    def search_case_folder_data_json(self, case_type_prefix: CaseTypePrefix, person_full_name: str, person_id: str, person_ssn: str) -> str:
+    def search_case_folder_data_json(self, case_type_prefix: CaseTypePrefix, person_full_name: str, person_id: str, person_ssn: str) -> Dict[str, Any]:
         """
         Creates a JSON string representing a search string for case folder with the provided attributes.
 
         Parameters:
         case_type_prefix (CaseTypePrefix): The prefix indicating the type of the case. Must be one of the predefined literal values.
-        metadata_xml (str): XML-formatted string containing metadata associated with the case.
+        person_full_name (str): The full name of the person associated with the case.
+        person_id (str): The ID of the person associated with the case.
+        person_ssn (str): The Social Security Number of the person associated with the case.
 
         Returns:
-        str: A JSON formatted string representing the case with the specified attributes, ensuring non-ASCII characters are retained and output is indented for readability.
+        dict: A dictionary representing the search criteria for the case folder in JSON format.
         """
         search_case_folder_data = {
             "FieldProperties": [
@@ -68,7 +72,7 @@ class CaseDataJson:
             "ExcludeDeletedCases": "True",
             "ReturnCasesNumber": "1"
             }
-        return json.dumps(search_case_folder_data, ensure_ascii=False, indent=4)
+        return json.loads(search_case_folder_data)
 
 
 @dataclasses.dataclass
@@ -79,7 +83,7 @@ class DocumentJsonCreator:
 
     This class is used to serialize document attributes into a JSON format.
     """
-    def document_data_json(self, case_id: str, list_name: str, folder_path: str, filename: str, metadata: str, overwrite: bool, data_in_bytes: bytes) -> str:
+    def document_data_json(self, case_id: str, list_name: str, folder_path: str, filename: str, metadata: str, overwrite: bool, data_in_bytes: bytes) -> Dict[str, Any]:
         """
         Creates a JSON string representing a document with the provided attributes.
 
@@ -93,7 +97,7 @@ class DocumentJsonCreator:
         data_in_bytes (bytes): The binary data of the file being represented.
 
         Returns:
-        str: A JSON formatted string representing the document with specified attributes, ensuring non-ASCII characters are retained and output is indented for readability.
+        dict: A dictionary representing the document data in JSON format.
         """
         document_data = {
             "CaseId": case_id,
@@ -104,4 +108,4 @@ class DocumentJsonCreator:
             "Overwrite": overwrite,
             "Bytes": data_in_bytes
         }
-        return json.dumps(document_data, ensure_ascii=False, indent=4)
+        return json.loads(document_data)
