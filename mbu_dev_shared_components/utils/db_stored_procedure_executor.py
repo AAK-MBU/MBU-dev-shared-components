@@ -3,11 +3,9 @@ This module contains a generic function for executing stored procedures in a dat
 via the pyodbc library. The function connects to the database and executes the stored
 procedure with provided parameters, returning the success status and any error messages.
 """
-import pyodbc
 from typing import Dict, Any, Union
-from datetime import datetime
 from dateutil import parser
-
+import pyodbc
 
 def execute_stored_procedure(connection_string: str, stored_procedure: str, params: Dict[str, Any]) -> Dict[str, Union[bool, str, Any]]:
     """
