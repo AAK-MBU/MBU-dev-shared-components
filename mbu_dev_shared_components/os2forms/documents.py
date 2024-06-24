@@ -17,6 +17,6 @@ def download_file_bytes(url: str, api_key: str) -> bytes:
     requests.RequestException: If the HTTP request fails for any reason.
     """
     url = f"{url}?api-key={api_key}"
-    response = requests.request(method='GET', url=url, headers={}, body={}, timeout=60)
+    response = requests.request(method='GET', url=url, timeout=60)
 
     return response.content
