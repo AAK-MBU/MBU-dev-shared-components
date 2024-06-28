@@ -7,7 +7,15 @@ from typing import Dict, Any, Union
 from dateutil import parser
 import pyodbc
 
-def execute_stored_procedure(connection_string: str, stored_procedure: str, params: Dict[str, Any]) -> Dict[str, Union[bool, str, Any]]:
+
+def format_datetime(dt):
+    """Format datetime object to string if not None"""
+    return dt.isoformat() if dt else None
+
+
+def execute_stored_procedure(connection_string: str,
+                             stored_procedure: str,
+                             params: Dict[str, Any]) -> Dict[str, Union[bool, str, Any]]:
     """
     Executes a stored procedure with the given parameters.
 
@@ -30,7 +38,7 @@ def execute_stored_procedure(connection_string: str, stored_procedure: str, para
         "str": str,
         "int": int,
         "float": float,
-        "datetime": lambda x: parser.isoparse(x),
+        "datetime": lambda x: format_datetime(parser.isoparse(x) if isinstance(x, str) else x),
         # Add more types if needed
     }
 
@@ -40,11 +48,14 @@ def execute_stored_procedure(connection_string: str, stored_procedure: str, para
                 param_placeholders = ', '.join([f"@{key} = ?" for key in params.keys()])
                 param_values = []
 
-                for key, value in params.items():
+                for _, value in params.items():
                     if isinstance(value, tuple) and len(value) == 2:
                         value_type, actual_value = value
                         if value_type in type_mapping:
-                            param_values.append(type_mapping[value_type](actual_value))
+                            if actual_value is not None:
+                                param_values.append(type_mapping[value_type](actual_value))
+                            else:
+                                param_values.append(None)
                         else:
                             param_values.append(actual_value)
                     else:
@@ -60,5 +71,5 @@ def execute_stored_procedure(connection_string: str, stored_procedure: str, para
         result["error_message"] = f"Value error: {str(e)}"
     except Exception as e:
         result["error_message"] = f"An unexpected error occurred: {str(e)}"
-    
+
     return result
