@@ -8,14 +8,7 @@ from dateutil import parser
 import pyodbc
 
 
-def format_datetime(dt):
-    """Format datetime object to string if not None"""
-    return dt.isoformat() if dt else None
-
-
-def execute_stored_procedure(connection_string: str,
-                             stored_procedure: str,
-                             params: Dict[str, Any]) -> Dict[str, Union[bool, str, Any]]:
+def execute_stored_procedure(connection_string: str, stored_procedure: str, params: Dict[str, Any]) -> Dict[str, Union[bool, str, Any]]:
     """
     Executes a stored procedure with the given parameters.
 
@@ -38,7 +31,7 @@ def execute_stored_procedure(connection_string: str,
         "str": str,
         "int": int,
         "float": float,
-        "datetime": lambda x: format_datetime(parser.isoparse(x) if isinstance(x, str) else x),
+        "datetime": lambda x: parser.isoparse(x),
         # Add more types if needed
     }
 
@@ -52,10 +45,7 @@ def execute_stored_procedure(connection_string: str,
                     if isinstance(value, tuple) and len(value) == 2:
                         value_type, actual_value = value
                         if value_type in type_mapping:
-                            if actual_value is not None:
-                                param_values.append(type_mapping[value_type](actual_value))
-                            else:
-                                param_values.append(None)
+                            param_values.append(type_mapping[value_type](actual_value))
                         else:
                             param_values.append(actual_value)
                     else:
