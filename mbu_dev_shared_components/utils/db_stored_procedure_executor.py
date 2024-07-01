@@ -3,6 +3,7 @@ This module contains a generic function for executing stored procedures in a dat
 via the pyodbc library. The function connects to the database and executes the stored
 procedure with provided parameters, returning the success status and any error messages.
 """
+import json
 from typing import Dict, Any, Union
 from dateutil import parser
 import pyodbc
@@ -32,7 +33,7 @@ def execute_stored_procedure(connection_string: str, stored_procedure: str, para
         "int": int,
         "float": float,
         "datetime": lambda x: parser.isoparse(x),
-        # Add more types if needed
+        "json": lambda x: json.dumps(x, ensure_ascii=False)
     }
 
     try:
@@ -41,7 +42,7 @@ def execute_stored_procedure(connection_string: str, stored_procedure: str, para
                 param_placeholders = ', '.join([f"@{key} = ?" for key in params.keys()])
                 param_values = []
 
-                for _, value in params.items():
+                for key, value in params.items():
                     if isinstance(value, tuple) and len(value) == 2:
                         value_type, actual_value = value
                         if value_type in type_mapping:
