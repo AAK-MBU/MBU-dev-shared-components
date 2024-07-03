@@ -40,9 +40,9 @@ def get_form(os2_api_endpoint: str, os2_api_key: str) -> requests.Response:
     return response
 
 
-def get_list_of_submissions(os2_api_endpoint: str, data_webform_id: str, os2_api_key: str) -> requests.Response:
+def get_list_of_active_forms(os2_api_endpoint: str, data_webform_id: str, os2_api_key: str) -> requests.Response:
     """
-    Fetches a list of all submissions.
+    Fetches a list of all active submissions.
 
     Args:
         data webform id (str): The uniquie id for the webform.
