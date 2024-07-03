@@ -13,7 +13,7 @@ Dependencies:
 import requests
 
 
-def get_forms(url: str, os2_api_key) -> requests.Response:
+def get_form(os2_api_endpoint: str, os2_api_key: str) -> requests.Response:
     """
     Fetches form data from the OS2Forms API.
 
@@ -34,6 +34,32 @@ def get_forms(url: str, os2_api_key) -> requests.Response:
         'Content-Type': 'application/json',
         'api-key': f'{os2_api_key}'
         }
+    response = requests.get(url=os2_api_endpoint, headers=headers, timeout=60)
+    response.raise_for_status()
+
+    return response
+
+
+def get_list_of_submissions(os2_api_endpoint: str, data_webform_id: str, os2_api_key: str) -> requests.Response:
+    """
+    Fetches a list of all submissions.
+
+    Args:
+        data webform id (str): The uniquie id for the webform.
+        os2 api key (str): The api-key for OS2Forms API.
+
+    Returns:
+        requests.Response: The response object containing the list of submissions.
+
+    Raises:
+        requests.exceptions.HTTPError: If the request returns an unsuccessful status code.
+        requests.exceptions.RequestException: For other types of request exceptions.
+    """
+    headers = {
+        'Content-Type': 'application/json',
+        'api-key': f'{os2_api_key}'
+        }
+    url = f"{os2_api_endpoint}/webform_rest/{data_webform_id}/submissions"
     response = requests.get(url=url, headers=headers, timeout=60)
     response.raise_for_status()
 
