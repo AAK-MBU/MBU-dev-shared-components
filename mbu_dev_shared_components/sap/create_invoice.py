@@ -100,7 +100,6 @@ class InvoiceCreator:
             name_person: str,
             start_date: str,
             end_date: str,
-            institution_number: str,
             main_transaction_id: str,
             main_transaction_amount: str,
             sub_transaction_id: str,
@@ -128,8 +127,6 @@ class InvoiceCreator:
             Start date of the transaction period.
         end_date : str
             End date of the transaction period.
-        institution_number : str
-            Institution number.
         main_transaction_id : str
             ID of the main transaction.
         main_transaction_amount : str
