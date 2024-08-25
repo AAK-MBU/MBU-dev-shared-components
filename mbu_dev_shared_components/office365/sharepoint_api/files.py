@@ -62,7 +62,7 @@ class Sharepoint:
         Authenticates to the SharePoint site and returns the site object.
 
         Returns:
-            Optional[Site]: A SharePlum Site object for interacting with the SharePoint site if authentication is successful, 
+            Optional[Site]: A SharePlum Site object for interacting with the SharePoint site if authentication is successful,
                             otherwise None.
         """
         try:
@@ -122,9 +122,6 @@ class Sharepoint:
             folder_destination (str): The local folder path where the file will be saved.
             file_name (str): The name of the file to be saved.
             file_content (bytes): The binary content of the file.
-
-        Returns:
-            None
         """
         file_directory_path = PurePath(folder_destination, file_name)
         with open(file_directory_path, 'wb') as file:
@@ -138,9 +135,6 @@ class Sharepoint:
             folder (str): The name of the folder in the document library containing the file.
             filename (str): The name of the file to download.
             folder_destination (str): The local folder path where the downloaded file will be saved.
-
-        Returns:
-            None
         """
         file_content = self.fetch_file_content(filename, folder)
         if file_content:
@@ -155,9 +149,6 @@ class Sharepoint:
         Args:
             folder (str): The name of the folder in the document library containing the files.
             folder_destination (str): The local folder path where the downloaded files will be saved.
-
-        Returns:
-            None
         """
         files_list = self.fetch_files_list(folder)
         for file in files_list:
