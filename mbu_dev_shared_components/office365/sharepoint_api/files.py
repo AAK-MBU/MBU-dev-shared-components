@@ -57,12 +57,13 @@ class Sharepoint:
         self.document_library = document_library
         self.site = self._auth()
 
-    def _auth(self):
+    def _auth(self) -> Optional[Site]:
         """
         Authenticates to the SharePoint site and returns the site object.
 
         Returns:
-            Site: A SharePlum Site object for interacting with the SharePoint site.
+            Optional[Site]: A SharePlum Site object for interacting with the SharePoint site if authentication is successful, 
+                            otherwise None.
         """
         try:
             authcookie = Office365(self.site_url, username=self.username, password=self.password).GetCookies()
@@ -72,7 +73,7 @@ class Sharepoint:
             print(f"Failed to authenticate: {e}")
             return None
 
-    def fetch_files_list(self, folder_name: str) -> list:
+    def fetch_files_list(self, folder_name: str) -> Optional[list]:
         """
         Retrieves a list of files from a specified folder within the document library.
 
@@ -80,7 +81,7 @@ class Sharepoint:
             folder_name (str): The name of the folder within the document library.
 
         Returns:
-            list: A list of file dictionaries in the specified folder, or an empty list if an error occurs.
+            list: A list of file dictionaries in the specified folder, or an empty list if an error occurs or if the site is not authenticated.
         """
         if self.site:
             try:
@@ -89,8 +90,8 @@ class Sharepoint:
                 return files
             except Exception as e:
                 print(f"Error retrieving files: {e}")
-                return []
-        return []
+                return None
+        return None
 
     def fetch_file_content(self, file_name: str, folder_name: str) -> Optional[bytes]:
         """
@@ -111,8 +112,9 @@ class Sharepoint:
             except Exception as e:
                 print(f"Failed to download file: {e}")
                 return None
+        return None
 
-    def _write_file(self, folder_destination: str, file_name: str, file_content: bytes) -> None:
+    def _write_file(self, folder_destination: str, file_name: str, file_content: bytes):
         """
         Saves the binary content of a file to a specified local destination.
 
@@ -128,7 +130,7 @@ class Sharepoint:
         with open(file_directory_path, 'wb') as file:
             file.write(file_content)
 
-    def download_file(self, folder: str, filename: str, folder_destination: str) -> None:
+    def download_file(self, folder: str, filename: str, folder_destination: str):
         """
         Downloads a specified file from a specified folder and saves it to a local destination.
 
@@ -146,7 +148,7 @@ class Sharepoint:
         else:
             print(f"Failed to download {filename}")
 
-    def download_files(self, folder: str, folder_destination: str) -> None:
+    def download_files(self, folder: str, folder_destination: str):
         """
         Downloads all files from a specified folder and saves them to a local destination.
 
