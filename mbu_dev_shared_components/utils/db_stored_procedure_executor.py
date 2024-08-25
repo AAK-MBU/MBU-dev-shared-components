@@ -32,7 +32,7 @@ def execute_stored_procedure(connection_string: str, stored_procedure: str, para
         "str": str,
         "int": int,
         "float": float,
-        "datetime": lambda x: parser.isoparse(x),
+        "datetime": parser.isoparse,
         "json": lambda x: json.dumps(x, ensure_ascii=False)
     }
 

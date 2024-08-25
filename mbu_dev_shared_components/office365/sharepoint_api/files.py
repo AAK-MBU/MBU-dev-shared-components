@@ -30,6 +30,7 @@ Example:
 """
 
 from pathlib import PurePath
+from typing import Optional
 from shareplum import Site, Office365
 from shareplum.site import Version
 
@@ -88,10 +89,10 @@ class Sharepoint:
                 return files
             except Exception as e:
                 print(f"Error retrieving files: {e}")
-                return None
+                return []
         return []
 
-    def fetch_file_content(self, file_name: str, folder_name: str) -> bytes:
+    def fetch_file_content(self, file_name: str, folder_name: str) -> Optional[bytes]:
         """
         Downloads a file from a specified folder within the document library.
 
@@ -100,7 +101,7 @@ class Sharepoint:
             folder_name (str): The name of the folder where the file is located.
 
         Returns:
-            bytes: The binary content of the file if successful, otherwise None.
+            bytes (Optional): The binary content of the file if successful, otherwise None.
         """
         if self.site:
             try:
