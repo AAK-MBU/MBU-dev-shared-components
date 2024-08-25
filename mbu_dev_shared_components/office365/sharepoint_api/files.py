@@ -88,7 +88,7 @@ class Sharepoint:
                 return files
             except Exception as e:
                 print(f"Error retrieving files: {e}")
-                return []
+                return None
         return []
 
     def fetch_file_content(self, file_name: str, folder_name: str) -> bytes:
