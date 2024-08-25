@@ -17,8 +17,8 @@ def download_file_bytes(url: str, os2_api_key: str) -> bytes:
     requests.RequestException: If the HTTP request fails for any reason.
     """
     headers = {
-    'Content-Type': 'application/json',
-    'api-key': f'{os2_api_key}'
+        'Content-Type': 'application/json',
+        'api-key': f'{os2_api_key}'
     }
     response = requests.request(method='GET', url=url, headers=headers, timeout=60)
     response.raise_for_status()
