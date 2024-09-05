@@ -58,3 +58,13 @@ converting lists associated with keys in a JSON object into dictionaries.
 
 - Transform all lists
 - Insert key value pairs
+
+
+#### - Fernet Encryptor
+This module provides a class for encrypting and decrypting data using the
+Fernet symmetric encryption algorithm.
+
+- Encrypts
+- Decrypts
+
+
