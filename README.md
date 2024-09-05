@@ -42,7 +42,6 @@ Additionally, it provides functionalities to count the total number of rows and 
 #### - Invoices
 
 This module provides the InvoiceCreator class to create invoices in SAP.
-
 The InvoiceCreator class offers methods to open a specified business partner, and creat an invoice.
 
 - Open business partner
