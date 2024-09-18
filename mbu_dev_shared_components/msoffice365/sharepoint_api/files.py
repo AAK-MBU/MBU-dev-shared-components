@@ -28,6 +28,7 @@ Example:
     sp = Sharepoint(**sharepoint_details)
     sp.download_files("FolderName", "C:\\LocalPath")
 """
+
 from pathlib import PurePath
 from typing import Optional, List
 import os
