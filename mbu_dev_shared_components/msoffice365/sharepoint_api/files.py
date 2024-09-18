@@ -111,16 +111,14 @@ class Sharepoint:
             folder_name (str): The name of the folder where the file is located.
 
         Returns:
-            bytes (Optional): The binary content of the file if successful, otherwise None.
+            Optional[bytes]: The binary content of the file if successful, otherwise None.
         """
         if self.ctx:
             try:
-                file_url = (
-                    f"/teams/{self.site_name}/{self.document_library}/{folder_name}/{file_name}"
-                )
+                file_url = f"/teams/{self.site_name}/{self.document_library}/{folder_name}/{file_name}"
                 file = self.ctx.web.get_file_by_server_relative_url(file_url)
-                file_content = file.download().execute_query()
-                return file_content.content
+                file_content = file.read().execute_query()
+                return file_content.value
             except Exception as e:
                 print(f"Failed to download file: {e}")
                 return None
