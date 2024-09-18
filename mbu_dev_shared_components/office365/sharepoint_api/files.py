@@ -28,17 +28,17 @@ Example:
     sp = Sharepoint(**sharepoint_details)
     sp.download_files("FolderName", "C:\\LocalPath")
 """
-
 from pathlib import PurePath
-from typing import Optional
-from shareplum import Site, Office365
-from shareplum.site import Version
+from typing import Optional, List
+import os
+from office365.runtime.auth.user_credential import UserCredential
+from office365.sharepoint.client_context import ClientContext
 
 
 class Sharepoint:
     """
     A class to interact with a SharePoint site, enabling authentication, file listing,
-    downloading, and saving functionalities within a specified SharePoint document library.
+    downloading, uploading, and saving functionalities within a specified SharePoint document library.
 
     Attributes:
         username (str): Username for authentication.
@@ -48,32 +48,36 @@ class Sharepoint:
         document_library (str): Document library path.
     """
 
-    def __init__(self, username: str, password: str, site_url: str, site_name: str, document_library: str):
+    def __init__(
+        self, username: str, password: str, site_url: str, site_name: str, document_library: str
+    ):
         """Initializes the Sharepoint class with credentials and site details."""
         self.username = username
         self.password = password
         self.site_url = site_url
         self.site_name = site_name
         self.document_library = document_library
-        self.site = self._auth()
+        self.ctx = self._auth()
 
-    def _auth(self) -> Optional[Site]:
+    def _auth(self) -> Optional[ClientContext]:
         """
-        Authenticates to the SharePoint site and returns the site object.
+        Authenticates to the SharePoint site and returns the client context.
 
         Returns:
-            Optional[Site]: A SharePlum Site object for interacting with the SharePoint site if authentication is successful,
+            Optional[ClientContext]: A ClientContext object for interacting with the SharePoint site if authentication is successful,
                             otherwise None.
         """
         try:
-            authcookie = Office365(self.site_url, username=self.username, password=self.password).GetCookies()
-            site = Site(f'{self.site_url}/sites/{self.site_name}', version=Version.v365, authcookie=authcookie)
-            return site
+            site_full_url = f"{self.site_url}/teams/{self.site_name}"
+            ctx = ClientContext(site_full_url).with_credentials(
+                UserCredential(self.username, self.password)
+            )
+            return ctx
         except Exception as e:
             print(f"Failed to authenticate: {e}")
             return None
 
-    def fetch_files_list(self, folder_name: str) -> Optional[list]:
+    def fetch_files_list(self, folder_name: str) -> Optional[List[dict]]:
         """
         Retrieves a list of files from a specified folder within the document library.
 
@@ -81,13 +85,17 @@ class Sharepoint:
             folder_name (str): The name of the folder within the document library.
 
         Returns:
-            list: A list of file dictionaries in the specified folder, or an empty list if an error occurs or if the site is not authenticated.
+            list: A list of file dictionaries in the specified folder, or None if an error occurs or if the site is not authenticated.
         """
-        if self.site:
+        if self.ctx:
             try:
-                folder = self.site.Folder(f'{self.document_library}/{folder_name}')
+                folder_url = f"/teams/{self.site_name}/{self.document_library}/{folder_name}"
+                folder = self.ctx.web.get_folder_by_server_relative_url(folder_url)
                 files = folder.files
-                return files
+                self.ctx.load(files)
+                self.ctx.execute_query()
+                files_list = [{"Name": file.name} for file in files]
+                return files_list
             except Exception as e:
                 print(f"Error retrieving files: {e}")
                 return None
@@ -104,11 +112,14 @@ class Sharepoint:
         Returns:
             bytes (Optional): The binary content of the file if successful, otherwise None.
         """
-        if self.site:
+        if self.ctx:
             try:
-                folder = self.site.Folder(f'{self.document_library}/{folder_name}')
-                file_content = folder.get_file(file_name)
-                return file_content
+                file_url = (
+                    f"/teams/{self.site_name}/{self.document_library}/{folder_name}/{file_name}"
+                )
+                file = self.ctx.web.get_file_by_server_relative_url(file_url)
+                file_content = file.download().execute_query()
+                return file_content.content
             except Exception as e:
                 print(f"Failed to download file: {e}")
                 return None
@@ -124,7 +135,7 @@ class Sharepoint:
             file_content (bytes): The binary content of the file.
         """
         file_directory_path = PurePath(folder_destination, file_name)
-        with open(file_directory_path, 'wb') as file:
+        with open(file_directory_path, "wb") as file:
             file.write(file_content)
 
     def download_file(self, folder: str, filename: str, folder_destination: str):
@@ -151,9 +162,53 @@ class Sharepoint:
             folder_destination (str): The local folder path where the downloaded files will be saved.
         """
         files_list = self.fetch_files_list(folder)
-        for file in files_list:
-            file_content = self.fetch_file_content(file['Name'], folder)
-            if file_content:
-                self._write_file(folder_destination, file['Name'], file_content)
-            else:
-                print(f"Failed to download {file['Name']}")
+        if files_list:
+            for file in files_list:
+                file_content = self.fetch_file_content(file["Name"], folder)
+                if file_content:
+                    self._write_file(folder_destination, file["Name"], file_content)
+                else:
+                    print(f"Failed to download {file['Name']}")
+        else:
+            print(f"No files found in folder {folder}")
+
+    def upload_file(self, folder_name: str, file_path: str, file_name: Optional[str] = None):
+        """
+        Uploads a single file to a specified folder within the document library.
+
+        Args:
+            folder_name (str): The name of the folder within the document library.
+            file_path (str): The local path to the file to be uploaded.
+            file_name (Optional[str]): The name to give the file in SharePoint. If not provided, uses the name from file_path.
+        """
+        if self.ctx:
+            try:
+                if file_name is None:
+                    file_name = os.path.basename(file_path)
+
+                folder_url = f"/teams/{self.site_name}/{self.document_library}/{folder_name}"
+                target_folder = self.ctx.web.get_folder_by_server_relative_url(folder_url)
+
+                with open(file_path, 'rb') as content_file:
+                    file_content = content_file.read()
+
+                target_folder.upload_file(file_name, file_content).execute_query()
+                print(f"File '{file_name}' uploaded successfully to '{folder_url}'.")
+            except Exception as e:
+                print(f"Failed to upload file '{file_name}': {e}")
+
+    def upload_files(self, folder_name: str, files: List[str]):
+        """
+        Uploads multiple files to a specified folder within the document library.
+
+        Args:
+            folder_name (str): The name of the folder within the document library.
+            files (List[str]): A list of local file paths to be uploaded.
+        """
+        if self.ctx:
+            for file_path in files:
+                try:
+                    file_name = os.path.basename(file_path)
+                    self.upload_file(folder_name, file_path, file_name)
+                except Exception as e:
+                    print(f"Failed to upload file '{file_path}': {e}")
