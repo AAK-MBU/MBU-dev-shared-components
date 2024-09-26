@@ -93,7 +93,7 @@ class SolteqTandDatabase:
         Checks if the patient is associated with an external dentist.
         (This method is a placeholder and needs to be implemented based on specific requirements.)
         """
-        pass  # Implementation needed
+        # Implementation needed
 
     def check_if_booking_exists(self):
         """

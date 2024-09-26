@@ -6,3 +6,5 @@ disable =
   R0914, # Too many local variables
   W0718, # Catching too general exception Exception (broad-exception-caught)
   R0903, # Too few public methods
+  R0916, # Too many boolean expressions in if statement
+  R0917, # Too many positional arguments
