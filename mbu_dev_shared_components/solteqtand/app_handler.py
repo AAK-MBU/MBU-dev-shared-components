@@ -1,5 +1,5 @@
 """
-This module contains the `SolteqTandApp` class, which automates interactions with the SolteqTand application using the UIAutomation library. 
+This module contains the `SolteqTandApp` class, which automates interactions with the SolteqTand application using the UIAutomation library.
 """
 import os
 import time
@@ -220,7 +220,7 @@ class SolteqTandApp:
 
         create_document_window = self.wait_for_control(
             auto.WindowControl,
-            {'AutomationId':'UploadFile'},
+            {'AutomationId': 'UploadFile'},
             search_depth=2
         )
         file_path_textbox = self.find_element_by_property(
