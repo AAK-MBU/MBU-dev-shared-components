@@ -93,7 +93,21 @@ class SolteqTandDatabase:
         Checks if the patient is associated with an external dentist.
         (This method is a placeholder and needs to be implemented based on specific requirements.)
         """
-        # Implementation needed
+        query = """
+            SELECT	[patientId]
+                    ,[cpr]
+                    ,[privateClinicId]
+                    ,[c.contractorId]
+                    ,[c.isPrimary]
+                    ,[c.name]
+                    ,[c.streetAddress]
+                    ,[c.zip]
+                    ,[c.phoneNumber]
+            FROM	[tmtdata_prod].[dbo].[PATIENT] p
+            JOIN	[CLINIC] c on c.clinicId = p.privateClinicId
+            WHERE	cpr = ?
+        """
+        return self._execute_query(query, (self.ssn))
 
     def check_if_booking_exists(self):
         """
@@ -118,7 +132,7 @@ class SolteqTandDatabase:
             JOIN BOOKINGTYPE bt on bt.BookingTypeID = b.BookingTypeID
             WHERE p.cpr = ?
         """
-        return self._execute_query(query, (self.ssn,))
+        return self._execute_query(query, (self.ssn))
 
     def check_if_event_exists(self, event_name: str, event_message: str):
         """
@@ -170,4 +184,4 @@ class SolteqTandDatabase:
             JOIN [CLINIC] c ON c.clinicId = p.preferredDentalClinicId
             WHERE p.cpr = ?
         """
-        return self._execute_query(query, (self.ssn,))
+        return self._execute_query(query, (self.ssn))
