@@ -35,7 +35,7 @@ class SolteqTandDatabase:
         cursor.execute(query, params)
         rows = cursor.fetchall()
         columns = [column[0] for column in cursor.description]
-        result = [dict(zip(columns, row)) for row in rows]
+        result = {'data': dict(zip(columns, row)) for row in rows}
         return result
 
     def check_if_document_exists(self, filename: str):
