@@ -83,7 +83,7 @@ class SolteqTandApp:
                 return control
             time.sleep(0.5)
         raise TimeoutError(f"Control with parameters {search_params} was not found within the timeout period.")
-    
+
     def wait_for_control_to_disappear(self, control_type, search_params, search_depth=1, timeout=30):
         """
         Waits for a given control type to disappear with the specified search parameters.
@@ -417,7 +417,7 @@ class SolteqTandApp:
         self.app_window.SetFocus()
         title_bar_window = self.app_window.TitleBarControl()
         title_bar_window.ButtonControl(Name="Luk").Click(simulateMove=False, waitTime=0)
-        
+
         self.app_window = self.wait_for_control(
             auto.ButtonControl,
             {'Name': 'Ja'},
