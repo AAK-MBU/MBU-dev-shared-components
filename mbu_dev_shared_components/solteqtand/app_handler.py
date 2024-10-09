@@ -6,11 +6,19 @@ import time
 import uiautomation as auto
 
 
+class ManualProcessingRequiredError(Exception):
+    """
+    Custom exception raised when the patient cannot be opened due incorrect SSN.
+    """
+    def __init__(self, message="Error occurred while opening the patient. There is no patient with the provided CPR number."):
+        super().__init__(message)
+
+
 class SolteqTandApp:
     """
     A class to automate interactions with the SolteqTand application.
     """
-    def __init__(self, app_path, username, password, ssn):
+    def __init__(self, app_path, username, password):
         """
         Initializes the SolteqTandApp object.
 
@@ -23,7 +31,6 @@ class SolteqTandApp:
         self.app_path = app_path
         self.username = username
         self.password = password
-        self.ssn = ssn
         self.app_window = None
 
     def find_element_by_property(self, control, control_type=None, automation_id=None, name=None, class_name=None) -> auto.Control:
@@ -77,6 +84,28 @@ class SolteqTandApp:
             time.sleep(0.5)
         raise TimeoutError(f"Control with parameters {search_params} was not found within the timeout period.")
 
+    def wait_for_control_to_disappear(self, control_type, search_params, search_depth=1, timeout=30):
+        """
+        Waits for a given control type to disappear with the specified search parameters.
+
+        Args:
+            control_type: The type of control, e.g., auto.WindowControl, auto.ButtonControl, etc.
+            search_params (dict): Search parameters used to identify the control.
+                                The keys must match the properties used in the control type, e.g., 'AutomationId', 'Name'.
+            search_depth (int): How deep to search in the user interface.
+            timeout (int): How long to wait, in seconds.
+
+        Returns:
+            bool: True if the control disappeared within the timeout period, otherwise False.
+        """
+        end_time = time.time() + timeout
+        while time.time() < end_time:
+            control = control_type(searchDepth=search_depth, **search_params)
+            if not control.Exists(0, 0):
+                return True
+            time.sleep(0.5)
+        raise TimeoutError(f"Control with parameters {search_params} did not disappear within the timeout period.")
+
     def start_application(self):
         """
         Starts the application using the specified path.
@@ -114,11 +143,18 @@ class SolteqTandApp:
             timeout=60
         )
 
-    def open_patient(self):
+    def open_patient(self, ssn):
         """
         When the main window is open, presses Ctrl + O to open the 'Open Patient' window,
         searches for the SSN, and opens the patient.
         """
+        self.app_window = self.wait_for_control(
+            auto.WindowControl,
+            {'AutomationId': 'FormFront'},
+            search_depth=2,
+            timeout=5
+        )
+
         self.app_window.SetFocus()
         self.app_window.SendKeys('{Ctrl}o', waitTime=0)
 
@@ -132,14 +168,34 @@ class SolteqTandApp:
         ssn_input = open_patient_window.EditControl(AutomationId="TextBoxCpr")
         search_button = open_patient_window.PaneControl(AutomationId="ButtonOk")
 
-        ssn_input.SendKeys(text=self.ssn)
+        ssn_input.SendKeys(text=ssn)
         search_button.SetFocus()
         search_button.SendKeys('{ENTER}')
 
+        try:
+            error_window = self.wait_for_control(
+                auto.WindowControl,
+                {'Name': 'TMT - Åbn patient'},
+                search_depth=2,
+                timeout=10
+            )
+
+            if error_window is not None:
+                error_window_button = error_window.ButtonControl(Name="OK")
+                error_window_button.SetFocus()
+                error_window_button.Click(simulateMove=False, waitTime=0)
+
+                raise ManualProcessingRequiredError
+
+        except TimeoutError:
+            pass
+
         self.app_window = self.wait_for_control(
             auto.WindowControl,
-            {'AutomationId': 'FormPatient'}
+            {'AutomationId': 'FormPatient'},
+            timeout=10
         )
+
         self.app_window.Maximize()
 
     def open_sub_tab(self, sub_tab_name: str):
@@ -198,12 +254,7 @@ class SolteqTandApp:
             control_type=auto.ControlType.ListControl,
             automation_id="cleverListView1"
         )
-
-        list_items = self.find_element_by_property(
-            control=document_list,
-            control_type=auto.ControlType.ListItemControl
-        )
-        list_items.RightClick(simulateMove=False, waitTime=0)
+        document_list.RightClick(simulateMove=False, waitTime=0)
 
         document_list_menu = self.wait_for_control(
             auto.MenuControl,
@@ -314,6 +365,7 @@ class SolteqTandApp:
             note_message (str): The note message.
             checkmark_in_complete (bool): Checks the checkmark in 'Afslut'.
         """
+        print(note_message)
         self.open_tab("Journal")
 
         self.wait_for_control(
@@ -334,3 +386,47 @@ class SolteqTandApp:
         save_button = self.app_window.PaneControl(AutomationId="buttonSave")
         save_button.SetFocus()
         save_button.Click(simulateMove=False, waitTime=0)
+
+    def close_patient_window(self):
+        """MISSING"""
+
+        title_bar_window = self.app_window.TitleBarControl()
+        title_bar_window.ButtonControl(Name="Luk").Click(simulateMove=False, waitTime=0)
+
+        self.app_window = self.wait_for_control_to_disappear(
+            auto.WindowControl,
+            {'AutomationId': 'FormPatient'},
+            search_depth=2
+        )
+
+        self.app_window = self.wait_for_control(
+            auto.WindowControl,
+            {'AutomationId': 'FormFront'},
+            search_depth=2,
+            timeout=5
+        )
+
+    def close_solteq_tand(self):
+        """MISSING"""
+        self.app_window = self.wait_for_control(
+            auto.WindowControl,
+            {'AutomationId': 'FormFront'},
+            search_depth=2
+        )
+        self.app_window.SetFocus()
+        title_bar_window = self.app_window.TitleBarControl()
+        title_bar_window.ButtonControl(Name="Luk").Click(simulateMove=False, waitTime=0)
+
+        self.app_window = self.wait_for_control(
+            auto.ButtonControl,
+            {'Name': 'Ja'},
+            search_depth=3
+        )
+
+        self.app_window.Click(simulateMove=False)
+
+        self.app_window = self.wait_for_control_to_disappear(
+            auto.WindowControl,
+            {'AutomationId': 'FormFront'},
+            search_depth=2
+        )
