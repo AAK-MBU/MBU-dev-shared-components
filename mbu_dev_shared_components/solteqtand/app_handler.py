@@ -198,7 +198,6 @@ class SolteqTandApp:
 
         self.app_window.Maximize()
 
-
     def open_sub_tab(self, sub_tab_name: str):
         """
         Opens a specific sub-tab in the patient's main card.
