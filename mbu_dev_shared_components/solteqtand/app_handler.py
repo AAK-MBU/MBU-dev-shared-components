@@ -62,27 +62,37 @@ class SolteqTandApp:
 
         return None
 
-    def wait_for_control(self, control_type, search_params, search_depth=1, timeout=30):
+    def wait_for_control(self, control_type, search_params, search_depth=1, timeout=30, retry_interval=0.5):
         """
         Waits for a given control type to become available with the specified search parameters.
 
         Args:
             control_type: The type of control, e.g., auto.WindowControl, auto.ButtonControl, etc.
             search_params (dict): Search parameters used to identify the control.
-                                  The keys must match the properties used in the control type, e.g., 'AutomationId', 'Name'.
+                                The keys must match the properties used in the control type, e.g., 'AutomationId', 'Name'.
             search_depth (int): How deep to search in the user interface.
-            timeout (int): How long to wait, in seconds.
+            timeout (int): Maximum time to wait for the control, in seconds.
+            retry_interval (float): Time to wait between retries, in seconds.
 
         Returns:
-            Control: The control object if found, otherwise None.
+            Control: The control object if found, otherwise raises TimeoutError.
+
+        Raises:
+            TimeoutError: If the control is not found within the timeout period.
         """
         end_time = time.time() + timeout
         while time.time() < end_time:
-            control = control_type(searchDepth=search_depth, **search_params)
-            if control.Exists(0, 0):
-                return control
-            time.sleep(0.5)
-        raise TimeoutError(f"Control with parameters {search_params} was not found within the timeout period.")
+            try:
+                control = control_type(searchDepth=search_depth, **search_params)
+                if control.Exists(0, 0):
+                    return control
+            except Exception as e:
+                print(f"Error while searching for control: {e}")
+
+            time.sleep(retry_interval)
+            print(f"Retrying to find control: {search_params}...")
+
+        raise TimeoutError(f"Control with parameters {search_params} was not found within the {timeout} second timeout.")
 
     def wait_for_control_to_disappear(self, control_type, search_params, search_depth=1, timeout=30):
         """
