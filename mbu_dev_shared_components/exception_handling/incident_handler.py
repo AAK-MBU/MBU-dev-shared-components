@@ -1,20 +1,15 @@
 """Test the ServiceNow API."""
 
-import json
 import requests
 
-# Load credentials from config.json
-with open("config.json", "r") as config_file:
-    config = json.load(config_file)
 
-
-INCIDENT_SYS_ID = config["test_incident_sys_id"]
+INCIDENT_SYS_ID = ""
 
 PROD_INSTANCE = "aarhuskommune"
 TEST_INSTANCE = "aarhuskommunedev"
 
-USERNAME = config["username"]
-PASSWORD = config["password"]
+USERNAME = ""
+PASSWORD = ""
 
 CORRELATION_ID = ""
 CONTACT_TYPE = "integration"
