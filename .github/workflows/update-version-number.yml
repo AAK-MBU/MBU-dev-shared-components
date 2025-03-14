@@ -10,8 +10,12 @@ jobs:
     steps:
      - name: GitHub Tag Name example
        run: |
+         OLD_VERSION=$(grep ^version pyproject.toml | cut -d '"' -f 2)
+         NEW_VERSION=$GITHUB_REF_NAME
+         echo "Old version from pyproject.toml: $OLD_VERSION"
          echo "Tag name from GITHUB_REF_NAME: $GITHUB_REF_NAME"
          echo "Tag name from github.ref_name: ${{  github.ref_name }}"
+         echo $OLD_VERSION == $NEW_VERSION
 
 # on: 
 #   pull_request:
