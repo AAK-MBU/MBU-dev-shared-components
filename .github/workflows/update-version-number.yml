@@ -8,6 +8,10 @@ jobs:
   github-example-tags:
     runs-on: ubuntu-latest
     steps:
+     - name: Checkout Repository
+       uses: actions/checkout@v4
+       with:
+         fetch-depth: 0
      - name: GitHub Tag Name example
        run: |
          OLD_VERSION=$(grep ^version pyproject.toml | cut -d '"' -f 2)
