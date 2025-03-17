@@ -35,7 +35,7 @@ jobs:
               pyproject = toml.load(f)
 
           # Update the version field
-          pyproject['tool']['poetry']['version'] = '${VERSION_TAG}'
+          pyproject['project']['version'] = '${VERSION_TAG}'
 
           # Save the modified pyproject.toml
           with open('pyproject.toml', 'w') as f:
