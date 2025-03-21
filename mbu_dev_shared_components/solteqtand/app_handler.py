@@ -14,7 +14,7 @@ class ManualProcessingRequiredError(Exception):
     """
     Custom exception raised when the patient cannot be opened due incorrect SSN.
     """
-    def __init__(self, message="Error occurred while opening the patient. There is no patient with the provided CPR number."):
+    def __init__(self, message="Error occurred while handling the patient."):
         super().__init__(message)
 
 class NotMatchingError(Exception):
@@ -44,7 +44,6 @@ class SolteqTandApp:
             app_path (str): Path to the application.
             username (str): Username for login.
             password (str): Password for login.
-            ssn (str): SSN for lookup.
         """
         self.app_path = app_path
         self.username = username
@@ -505,13 +504,8 @@ class SolteqTandApp:
             control_type=50002,
             automation_id="chkMoreRecipients"
         )
-        # checkbox = self.wait_for_control(
-        #     control_type=auto.CheckBoxControl,
-        #     search_params={
-        #         "AutomationId": "chkMoreRecipients"
-        #     },
-        #     search_depth=5
-        # )
+
+
         if checkbox.GetTogglePattern().ToggleState != more_recepients:
             checkbox.GetTogglePattern().Toggle()
 
@@ -642,6 +636,25 @@ class SolteqTandApp:
                     automation_id = "ButtonOk"
                 )
             save_button.SendKeys('{ENTER}')
+            # Check for notification window pop up
+            try:
+                notification_ctrl = self.wait_for_control(
+                    control_type=auto.PaneControl,
+                    search_params={
+                        'AutomationId': 'BookingNotificationsControl'
+                    },
+                    search_depth=3,
+                    timeout=5
+                )
+                close_button = self.find_element_by_property(
+                    control=notification_ctrl,
+                    automation_id="ButtonCancel"
+                )
+                close_button.SendKeys('{ENTER}')
+                return
+            except TimeoutError:
+                pass
+            
             # Check for warning window pop up
             try:
                 self.handle_error_on_booking_save(slct_button="ButtonChangeManual")
@@ -671,23 +684,6 @@ class SolteqTandApp:
                 self.handle_error_on_booking_save(slct_button="ButtonOk")
                
                 raise ManualProcessingRequiredError
-            except TimeoutError:
-                pass
-            # Check for notification window pop up
-            try:
-                notification_ctrl = self.wait_for_control(
-                    control_type=auto.PaneControl,
-                    search_params={
-                        'AutomationId': 'BookingNotificationsControl'
-                    },
-                    search_depth=3,
-                    timeout=5
-                )
-                close_button = self.find_element_by_property(
-                    control=notification_ctrl,
-                    automation_id="ButtonCancel"
-                )
-                close_button.SendKeys('{ENTER}')
             except TimeoutError:
                 pass
             
