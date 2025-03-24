@@ -17,10 +17,12 @@ jobs:
             fetch-depth: 0
       - name: Update pyproject with latest tag
         run: |
+          old_version=$(grep ^version pyproject.toml | cut -d '"' -f 2)
           latest_tag=$(git describe --tags --abbrev=0)
           echo "Latest tag is: $latest_tag"
-          version=${latest_tag#v.}
-          echo "LATEST_TAG=$latest_tag" >> $GITHUB_ENV
+          new_version=${latest_tag#v.}
+          echo "NEW_VER=$new_version" >> $GITHUB_ENV
+          echo "OLD_VER=$old_version" >> $GITHUB_ENV
           sed -i "s/^version = .*/version = \"$version\"/" pyproject.toml
 
       - name: Commit version update
@@ -28,6 +30,7 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add *pyproject.toml
-            git commit -m "Version updating" || exit 0
+            git commit -m "Version updating (${{ env.OLD_VER }} -> ${{ env.NEW_VER }})" || exit 0
             git push
+
 
