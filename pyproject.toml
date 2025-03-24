@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mbu_dev_shared_components"
-version = "v0.3.4"
+version = "0.3.6"
 authors = [
   { name="MBU", email="rpa@mbu.aarhus.dk" },
 ]
