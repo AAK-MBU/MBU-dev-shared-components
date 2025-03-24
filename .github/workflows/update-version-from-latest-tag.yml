@@ -22,7 +22,7 @@ jobs:
           new_version=${latest_tag#v.}
           echo "NEW_VER=$new_version" >> $GITHUB_ENV
           echo "OLD_VER=$old_version" >> $GITHUB_ENV
-          if [[ "$new_version" != "$old_version"]]; then
+          if [[ "$new_version" != "$old_version"]] then
             sed -i "s/^version = .*/version = \"$new_version\"/" pyproject.toml
           else
             echo "No tag that defines new version"
