@@ -1049,7 +1049,6 @@ class SolteqTandApp:
         Closes the EDI portal in the SolteqTand application.
         """
         try:
-            # TODO: Implement close EDI portal
             pass
         except Exception as e:
             print(f"Error while closing EDI Portal: {e}")
