@@ -34,7 +34,7 @@ class CaseDataJson:
         }
         return case_data
 
-    def search_case_folder_data_json(self, case_type_prefix: CaseTypePrefix, person_full_name: str, person_id: str, person_ssn: str) -> str:
+    def search_case_folder_data_json(self, case_type_prefix: CaseTypePrefix, person_full_name: str, person_id: str, person_ssn: str, case_title: str = None) -> str:
         """
         Creates a JSON string representing a search string for case folder with the provided attributes.
 
@@ -70,7 +70,18 @@ class CaseDataJson:
             "LogicalOperator": "AND",
             "ExcludeDeletedCases": "True",
             "ReturnCasesNumber": "1"
-            }
+        }
+
+        if case_title is not None:
+            # Optionally add case_title to your search criteria
+            search_case_folder_data["FieldProperties"].append({
+                "InternalName": "ows_CaseTitle",
+                "Value": case_title,
+                "DataType": "Text",
+                "ComparisonType": "Equal",
+                "IsMultiValue": "False"
+            })
+
         return search_case_folder_data
 
 
