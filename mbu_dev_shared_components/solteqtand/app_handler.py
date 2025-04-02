@@ -5,9 +5,11 @@ using the UIAutomation library.
 """
 import os
 import time
-import uiautomation as auto
-
 from datetime import datetime
+import shutil
+import psutil
+import uiautomation as auto
+from docx2pdf import convert
 
 
 class ManualProcessingRequiredError(Exception):
@@ -17,6 +19,7 @@ class ManualProcessingRequiredError(Exception):
     def __init__(self, message="Error occurred while opening the patient. There is no patient with the provided CPR number."):
         super().__init__(message)
 
+
 class NotMatchingError(Exception):
     """
     Custom exception raised when inputted SSN does not match found SSN.
@@ -24,13 +27,15 @@ class NotMatchingError(Exception):
     def __init__(self, in_msg=""):
         message = "Error occured while opening the patient. " + in_msg 
         super().__init__(message)
-        
+
+
 class PatientNotFoundError(Exception):
     """
     Custom exception raised when inputted SSN does not match any patient in registry.
     """
-    def __init__(self, message = "Error occured while opening the patient. Patient not found"):
+    def __init__(self, message="Error occured while opening the patient. Patient not found"):
         super().__init__(message)
+
 
 class SolteqTandApp:
     """
@@ -207,14 +212,14 @@ class SolteqTandApp:
         search_button.SendKeys('{ENTER}')
 
         # Here we handle possible error window popup.
-        try: 
+        try:
             patient_window = self.wait_for_control(
-            auto.WindowControl,
-            {'AutomationId': 'FormPatient'},
-            timeout=5
+                auto.WindowControl,
+                {'AutomationId': 'FormPatient'},
+                timeout=5
             )
             self.app_window = patient_window
-            
+
         except TimeoutError:
             error_window = self.wait_for_control(
                 auto.WindowControl,
@@ -229,7 +234,6 @@ class SolteqTandApp:
                 error_window_button.Click(simulateMove=False, waitTime=0)
 
                 raise PatientNotFoundError
-
 
         self.app_window = self.wait_for_control(
             auto.WindowControl,
@@ -287,6 +291,9 @@ class SolteqTandApp:
             tab_button.SendKeys('{ENTER}')
 
     def get_ssn_stamkort(self):
+        """
+        Gets the SSN from the 'Stamkort' tab.
+        """
         self.open_tab("Stamkort")
         stamkort = self.wait_for_control(
             auto.PaneControl,
@@ -304,6 +311,9 @@ class SolteqTandApp:
         return ssn
 
     def check_matching_ssn(self, ssn):
+        """
+        Checks if the SSN found in the 'Stamkort' tab matches the input SSN.
+        """
         # Navigate to stamkort
         found_ssn = self.get_ssn_stamkort()
         found_ssn = found_ssn.replace("-","")
@@ -311,7 +321,6 @@ class SolteqTandApp:
             raise NotMatchingError(in_msg=f"Found SSN {found_ssn} does not match input {ssn}")
         else:
             return True
-
 
     def create_document(self, document_full_path: str = None, document_type: str = None, document_description: str = None):
         """
@@ -472,10 +481,10 @@ class SolteqTandApp:
 
     def set_extra_recipients(self, more_recepients: bool) -> None:
         """Set state of extra recipients. E.g. if patient is above 18
-        
+
         Args:
             more_recipients (bool): Whether there should be more recipients. 
-        
+
         """
         self.open_tab("Stamkort")
         stamkort = self.wait_for_control(
@@ -570,7 +579,7 @@ class SolteqTandApp:
                     rowcount += 1
 
         return booking_list
-    
+
     def change_appointment_status(
             self,
             appointment_control: auto.ControlType,
@@ -610,7 +619,7 @@ class SolteqTandApp:
             control=status_control,
             control_type=50000
         ).GetInvokePattern().Invoke()
-        
+
         # Get list control for all status options
         status_list_ctrl = self.wait_for_control(
             control_type=auto.ListControl,
@@ -669,7 +678,7 @@ class SolteqTandApp:
                 save_button.SendKeys('{ENTER}')
                 # Accept despite warning
                 self.handle_error_on_booking_save(slct_button="ButtonOk")
-               
+
                 raise ManualProcessingRequiredError
             except TimeoutError:
                 pass
@@ -690,7 +699,7 @@ class SolteqTandApp:
                 close_button.SendKeys('{ENTER}')
             except TimeoutError:
                 pass
-            
+
             #   If warning when sending: press "ret manuelt" -> "annuler" -> return warning error 
 
             return None
@@ -721,8 +730,8 @@ class SolteqTandApp:
             automation_id=slct_button
         )
         button.SendKeys("{ENTER}")
-    
-    def close_window(self, window_to_close = auto.WindowControl) -> None:
+
+    def close_window(self, window_to_close=auto.WindowControl) -> None:
         """Closes sepcified window by """
 
         self.app_window = window_to_close
@@ -775,14 +784,14 @@ class SolteqTandApp:
             search_depth=2
         )
 
-    def set_date_in_aftalebog(self,from_date: datetime,to_date: datetime) -> None:
+    def set_date_in_aftalebog(self, from_date: datetime, to_date: datetime) -> None:
         """Set to and from dates in aftalebog oversigt"""
         import locale
         dt_picker_from = self.wait_for_control(
             control_type=auto.PaneControl,
             search_params={"AutomationId":"DateTimePickerFromDate"},
             search_depth=7)
-        
+
         from_keys = (
             f"{from_date.day}" + 
             "{right}" + 
@@ -792,10 +801,10 @@ class SolteqTandApp:
         )
 
         dt_picker_from.SendKeys(from_keys)
-        
+
         try:
             from_date.strftime(format="%d. %B %Y") == dt_picker_from.Name
-        except:
+        except Exception:
             # Should maybe try a number of times until it hits right or ends in systemerror
             # End with raise error where resulting dates are printed
             print("Dates after insert not matching input")
@@ -810,10 +819,10 @@ class SolteqTandApp:
         )
 
         to_keys = (
-            f"{to_date.day}" + 
-            "{right}" + 
-            f"{to_date.month}" + 
-            "{right}" + 
+            f"{to_date.day}" +
+            "{right}" +
+            f"{to_date.month}" +
+            "{right}" +
             f"{to_date.year}"
         )
 
@@ -823,12 +832,12 @@ class SolteqTandApp:
 
         try:
             to_date.strftime(format="%d. %B %Y") == dt_picker_to.Name
-        except:
+        except Exception:
             print("Dates after insert not matching input")
             print((
                 f"'To' input: {to_date.strftime(format="%d. %B %Y")} " +
                 f"Current value: {dt_picker_to.Name}"))
-            
+
     def pick_appointment_types_aftalebog(self, appointment_types: str | list):
         """Set one or more appointment types in aftalebog oversigt"""
 
@@ -934,7 +943,7 @@ class SolteqTandApp:
         # Get list control
         list_box = self.wait_for_control(
             control_type=auto.GroupControl,
-            search_params = {
+            search_params={
                 "AutomationId": "GroupBoxView"
             },
             search_depth=5
@@ -1013,3 +1022,651 @@ class SolteqTandApp:
             {'AutomationId': 'FormFront'},
             search_depth=2
         )
+
+    def open_edi_portal(self):
+        """
+        Opens the EDI portal in the SolteqTand application.
+        """
+        try:
+            menu_edi_button = self.find_element_by_property(
+                control=self.app_window,
+                control_type=auto.ControlType.MenuItemControl,
+                name="EDI Portal"
+            )
+            menu_edi_button.Click(simulateMove=False, waitTime=0)
+            journalforsendelse_button = self.find_element_by_property(
+                control=self.app_window,
+                control_type=auto.ControlType.MenuItemControl,
+                name="Opret journalforsendelse"
+            )
+            journalforsendelse_button.Click(simulateMove=False, waitTime=0)
+
+        except Exception as e:
+            print(f"Error while opening EDI Portal: {e}")
+
+    def close_edi_portal(self):
+        """
+        Closes the EDI portal in the SolteqTand application.
+        """
+        try:
+            pass
+        except Exception as e:
+            print(f"Error while closing EDI Portal: {e}")
+
+    def edi_portal_check_contractor_id(self, extern_clinic_data: dict, sleep_time: int = 5) -> dict:
+        """
+        Checks if the contractor ID is valid in the EDI portal.
+
+        Args:
+            extern_clinic_data (dict): A dictionary containing the contractor ID and phone number.
+            sleep_time (int): Time to wait after clicking the next button.
+
+        Returns:
+            dict: A dictionary containing the row count and whether the phone number matches.
+        """
+        try:
+            edge_window = self.wait_for_control(
+                auto.WindowControl,
+                {'ClassName': 'Chrome_WidgetWin_1'},
+                search_depth=3
+            )
+
+            next_button = self.wait_for_control(
+                auto.ButtonControl,
+                {'AutomationId': 'patientInformationNextButton'},
+                search_depth=21
+            )
+
+            edge_window.SetFocus()
+            next_button.Click(simulateMove=False, waitTime=0)
+
+            search_box = self.wait_for_control(
+                auto.EditControl,
+                {'ClassName': 'form-control filter_search'},
+                search_depth=21
+            )
+            search_box.SetFocus()
+            search_box_value_pattern = search_box.GetPattern(auto.PatternId.ValuePattern)
+            search_box_value_pattern.SetValue(extern_clinic_data["contractorId"])
+            search_box.SendKeys('{ENTER}')
+
+            time.sleep(sleep_time)
+
+            table_dentists = self.wait_for_control(
+                auto.TableControl,
+                {'AutomationId': 'table_id1'},
+                search_depth=25,
+            )
+            grid_pattern = table_dentists.GetPattern(auto.PatternId.GridPattern)
+            row_count = grid_pattern.RowCount
+
+            is_phone_number_match = False
+            if row_count > 0:
+                for row in range(row_count):
+                    phone_number = grid_pattern.GetItem(row, 4).Name
+                    if phone_number == extern_clinic_data["phoneNumber"]:
+                        is_phone_number_match = True
+                        break
+            return {"rowCount": row_count, "isPhoneNumberMatch": is_phone_number_match}
+        except Exception as e:
+            print(f"Error while checking contractor ID in EDI Portal: {e}")
+            raise
+
+    def change_primary_clinic(self, current_primary_clinic: str, is_field_locked: bool):
+        """
+        Changes the primary clinic for the patient.
+        """
+        try:
+            self.open_tab("Stamkort")
+
+            if current_primary_clinic != "Tandplejen Aarhus":
+                if is_field_locked:
+                    locked_field = self.wait_for_control(
+                        auto.CheckBoxControl,
+                        {'AutomationId': 'CheckPatientClinicRegLocked'},
+                        search_depth=9
+                    )
+
+                    if locked_field.GetPattern(auto.PatternId.TogglePattern).ToggleState:
+                        locked_field.GetPattern(auto.PatternId.TogglePattern).Toggle()
+                        locked_field.SendKeys('{Ctrl}s', waitTime=0)
+
+                box_clinic_parent = self.wait_for_control(
+                    auto.GroupControl,
+                    {'AutomationId': 'GroupBoxPatientDentalInfo'},
+                    search_depth=8
+                )
+                box_clinic = box_clinic_parent.PaneControl(
+                    searchDepth=2,
+                    AutomationId="ControlClinicSelectorPatientClinicReg"
+                    ).PaneControl(
+                        searchDepth=2,
+                        AutomationId="PictureBoxClinic"
+                        )
+                box_clinic.Click(simulateMove=False, waitTime=0)
+
+                clinic_list = self.wait_for_control(
+                    auto.WindowControl,
+                    {'AutomationId': 'FormFindClinics'},
+                    search_depth=2
+                )
+
+                clinic_list_items = clinic_list.ListControl(AutomationId="ListClinics").ListItemControl(Name="Tandplejen Aarhus")
+                clinic_list_items.GetPattern(10017).ScrollIntoView()
+                clinic_list_items.SetFocus()
+                clinic_list_items.DoubleClick(simulateMove=False, waitTime=0)
+
+                locked_field = self.wait_for_control(
+                    auto.CheckBoxControl,
+                    {'AutomationId': 'CheckPatientClinicRegLocked'},
+                    search_depth=9
+                )
+
+                if locked_field.GetPattern(auto.PatternId.TogglePattern).ToggleState == 0:
+                    locked_field.GetPattern(auto.PatternId.TogglePattern).Toggle()
+                    locked_field.SendKeys('{Ctrl}s', waitTime=0)
+
+                self.wait_for_control(
+                    auto.TextControl,
+                    {'Name': 'Patient er gemt.'},
+                    search_depth=3
+                )
+
+                print("Primary clinic changed successfully.")
+            print("Patient already has the primary clinic set to 'Tandplejen Aarhus'")
+        except Exception as e:
+            print(f"Error while changing primary clinic: {e}")
+            raise
+
+    def process_event(self):
+        """
+        Processes the event 'Afgang til klinik 751' under the 'Stamkort' tab.
+        """
+        try:
+            self.open_tab("Stamkort")
+            self.open_sub_tab("Hændelser")
+
+            list_view = self.wait_for_control(
+                auto.ListControl,
+                {"AutomationId": "ListView1"},
+                search_depth=9
+                )
+
+            target_values = {"Afgang til klinik 751", "Stamklinik afgang", "Nej"}
+            for item in list_view.GetChildren():
+                if item.ControlType == auto.ControlType.ListItemControl:
+                    sub_items = [sub.Name for sub in item.GetChildren()]
+                    if target_values.issubset(set(sub_items)):
+                        matching_row = item
+                        break
+
+            if matching_row:
+                if matching_row.GetPattern(auto.PatternId.TogglePattern).ToggleState == 0:
+                    matching_row.GetPattern(auto.PatternId.TogglePattern).Toggle()
+                process_button = self.wait_for_control(
+                    auto.ButtonControl,
+                    {"Name": "Afvikl"},
+                    search_depth=10
+                    )
+                process_button.GetLegacyIAccessiblePattern().DoDefaultAction()
+                create_administrative_note_popup = self.wait_for_control(
+                    auto.WindowControl,
+                    {"Name": "Opret administrativt notat"},
+                    search_depth=3
+                    )
+                create_administrative_note_popup.ButtonControl(Name="Nej").GetLegacyIAccessiblePattern().DoDefaultAction()
+            print("Event processed")
+        except Exception as e:
+            print(f"Error while processing event: {e}")
+            raise
+
+    def create_booking_reminder(self, booking_reminder_data: dict):
+        """
+        Creates a booking reminder for the patient.
+        """
+        try:
+            self.open_tab("Stamkort")
+
+            create_booking_button = self.wait_for_control(
+                auto.PaneControl,
+                {"AutomationId": "ButtonBookingNew"},
+                search_depth=14
+                )
+            create_booking_button.GetLegacyIAccessiblePattern().DoDefaultAction()
+
+            booking_window = self.wait_for_control(
+                auto.WindowControl,
+                {"AutomationId": "MainFrame"},
+                search_depth=2
+                )
+
+            # Fill out ressourcer group
+            manage_booking = booking_window.PaneControl(AutomationId="viewPortPanel").PaneControl(AutomationId="ManageBookingControl")
+            resources_group = manage_booking.GroupControl(AutomationId="Ressourcer")
+
+            for child in resources_group.GetChildren():
+                if child.ControlTypeName == "ComboBoxControl":
+                    match child.Name:
+                        case "Aftaletype":
+                            child.GetPattern(auto.PatternId.ValuePattern).SetValue(booking_reminder_data["comboBoxBookingType"])
+                        case "Behandler":
+                            child.GetPattern(auto.PatternId.ValuePattern).SetValue(booking_reminder_data["comboBoxDentist"])
+                        case "Stol":
+                            child.GetPattern(auto.PatternId.ValuePattern).SetValue(booking_reminder_data["comboBoxChair"])
+
+            # Fill out date and time
+            date_and_time_group = manage_booking.GroupControl(AutomationId="GroupBox4")
+
+            for child in date_and_time_group.GetChildren():
+                match child.AutomationId:
+                    case "DateTimePickerStartTime":
+                        child.SendKeys(booking_reminder_data["dateTimePickerStartTime"])
+                    case "TextBoxDuration":
+                        if child.GetPattern(auto.PatternId.ValuePattern).Value != booking_reminder_data["textBoxDuration"]:
+                            child.GetPattern(auto.PatternId.ValuePattern).SetValue(booking_reminder_data["textBoxDuration"])
+                    case "ComboBoxStatus":
+                        if child.GetPattern(auto.PatternId.ValuePattern).Value != booking_reminder_data["comboBoxStatus"]:
+                            child.GetPattern(auto.PatternId.ValuePattern).SetValue(booking_reminder_data["comboBoxStatus"])
+                    case "DateTimePickerDate":
+                        child.SendKeys(booking_reminder_data["futureDate"])
+
+            manage_booking.PaneControl(AutomationId="ButtonOk").Click(simulateMove=True, waitTime=0)
+
+            booking_window_warning = self.wait_for_control(
+                auto.WindowControl,
+                {"AutomationId": "FormBookingWarnings"},
+                search_depth=4
+            )
+            booking_window_warning.PaneControl(AutomationId="ButtonOk").Click(simulateMove=True, waitTime=0)
+        except Exception as e:
+            print(f"Error while creating booking reminder: {e}")
+            raise
+
+    def change_primary_patient_dentist(self, new_value: str):
+        """
+        Changes the primary patient dentist to the specified value.
+        """
+        try:
+            self.open_tab("Stamkort")
+
+            patient_dentist_combobox = self.wait_for_control(
+                auto.ComboBoxControl,
+                {"AutomationId": "ComboPatientDentistReg"},
+                search_depth=10
+                )
+
+            def _get_selected_value():
+                """Get the selected value from the ComboBox."""
+                try:
+                    return patient_dentist_combobox.GetValuePattern().Value
+                except auto.PatternNotSupportedError:
+                    pass
+
+                for child in patient_dentist_combobox.GetChildren():
+                    if isinstance(child, auto.EditControl):
+                        return child.Name
+
+                return patient_dentist_combobox.Name
+
+            current_value = _get_selected_value()
+            print(f"Current selected status: '{current_value}'")
+
+            expected_value = new_value
+
+            if current_value == expected_value:
+                print("Status is already set correctly. No change needed.")
+                return
+
+            patient_dentist_combobox.GetPattern(auto.PatternId.ExpandCollapsePattern).Expand()
+            patient_dentist_combobox_expanded = self.wait_for_control(
+                auto.ListControl,
+                {'ClassName': 'ComboLBox'},
+                search_depth=3
+            )
+
+            selection_made = False
+            for item in patient_dentist_combobox_expanded.GetChildren():
+                if item.Name == expected_value:
+                    print(f"Selecting '{expected_value}'")
+                    item.Click(simulateMove=False, waitTime=0)
+                    selection_made = True
+                    break
+
+            if not selection_made:
+                raise ValueError(f"Expected status '{expected_value}' not found in ComboBox list.")
+
+            patient_dentist_combobox.GetPattern(auto.PatternId.ExpandCollapsePattern).Collapse()
+            time.sleep(0.5)
+            combobox_new_value = _get_selected_value()
+            print(f"New selected status: '{combobox_new_value}'")
+            if combobox_new_value != expected_value:
+                raise ValueError(f"Failed to set the correct status. Expected '{expected_value}', but got '{combobox_new_value}'.")
+
+            self.app_window.SendKeys('{Ctrl}S', waitTime=0)
+
+            try:
+                pop_up_dialog = self.wait_for_control(
+                    auto.WindowControl,
+                    {'Name': 'Hændelser'},
+                    search_depth=3,
+                    timeout=5
+                )
+                pop_up_dialog.ButtonControl(Name="Nej").GetLegacyIAccessiblePattern().DoDefaultAction()
+            except TimeoutError:
+                print("No pop-up window found.")
+        except Exception as e:
+            print(f"Error while changing primary treater: {e}")
+            raise
+
+    def create_document_from_template(self, metadata: dict) -> None:
+        try:
+            self.open_tab("Stamkort")
+
+            from_date = time.strftime("%d-%m-%Y")
+            to_date = time.strftime("%d-%m-%Y", time.localtime(time.time() + 50 * 365 * 86400))
+
+            from_date_field = self.wait_for_control(
+                auto.PaneControl,
+                {'AutomationId': 'DateTimePickerFromDate'},
+                search_depth=14
+            )
+            to_date_field = self.wait_for_control(
+                auto.PaneControl,
+                {'AutomationId': 'DateTimePickerToDate'},
+                search_depth=14
+            )
+            from_date_field.SendKeys(from_date)
+            to_date_field.SendKeys(to_date)
+
+            list_bookings_group = self.wait_for_control(
+                auto.GroupControl,
+                {'AutomationId': 'GroupBoxView'},
+                search_depth=13,
+            )
+            group_bookings_list = list_bookings_group.GetChildren()[0].GetChildren()[1]
+            group_bookings_list.RightClick(simulateMove=False, waitTime=0)
+
+            pop_up_right_click_menu = self.wait_for_control(
+                auto.MenuControl,
+                {'Name': 'Kontekst'},
+                search_depth=2
+            )
+            pop_up_right_click_menu.MenuItemControl(Name="Print/Flet patienter").GetLegacyIAccessiblePattern().DoDefaultAction()
+
+            form_print_merge = self.wait_for_control(
+                auto.WindowControl,
+                {'AutomationId': 'FormQueryPrintOrMerge'},
+                search_depth=3
+            )
+            form_print_merge.RadioButtonControl(AutomationId="RadioButtonMerge").GetLegacyIAccessiblePattern().DoDefaultAction()
+            form_print_merge.PaneControl(AutomationId="ButtonOK").GetLegacyIAccessiblePattern().DoDefaultAction()
+
+            form_mail_merge = self.wait_for_control(
+                auto.WindowControl,
+                {'AutomationId': 'FormMailMerge'},
+                search_depth=3
+            )
+            form_mail_merge.ComboBoxControl(AutomationId="ComboTemplet").GetPattern(auto.PatternId.ExpandCollapsePattern).Expand()
+
+            form_mail_merge_expanded = self.wait_for_control(
+                auto.ListControl,
+                {'ClassName': 'ComboLBox'},
+                search_depth=3
+            )
+
+            selection_made = False
+            for item in form_mail_merge_expanded.GetChildren():
+                if item.Name == metadata['templateName']:
+                    print(f"Selecting '{metadata['templateName']}'")
+                    item.Click(simulateMove=False, waitTime=0)
+                    selection_made = True
+                    break
+
+            if not selection_made:
+                raise ValueError(f"Expected status '{metadata['templateName']}' not found in ComboBox list.")
+
+            time.sleep(0.5)
+            new_value = form_mail_merge.ComboBoxControl(AutomationId="ComboTemplet").GetPattern(auto.PatternId.ValuePattern).Value
+            print(f"New selected status: '{new_value}'")
+            if new_value != metadata['templateName']:
+                raise ValueError(f"Failed to set the correct status. Expected '{metadata['templateName']}', but got '{new_value}'.")
+
+            folder_path = rf"{os.environ.get('USERPROFILE')}\AppData\Local\Temp\Care\TMTand"
+            shutil.rmtree(folder_path, ignore_errors=True)
+
+            form_mail_merge.PaneControl(AutomationId="ButtonMerge").GetLegacyIAccessiblePattern().DoDefaultAction()
+
+            word_window = self.wait_for_control(
+                auto.WindowControl,
+                {'ClassName': 'OpusApp'},
+                search_depth=2
+            )
+
+            def convert_docx_to_pdf(source_file_path: str, destination_path: str, new_filename: str, temp_filename: str) -> str:
+                """
+                Converts a DOCX file to a PDF file.
+
+                Args:
+                    source_file_path (str): The path to the source DOCX file.
+                    destination_file_path (str): The path to the destination PDF file.
+                    new_filename (str): The new filename for the PDF file.
+                """
+                try:
+                    source_file_path = os.path.join(folder_path, temp_filename)
+                    destination_file_path = os.path.join(destination_path, new_filename + ".pdf")
+                    print(f"{source_file_path=} -> {destination_file_path=}")
+                    convert(source_file_path, destination_file_path)
+                    timeout = 30
+                    start_time = time.time()
+                    while not os.path.exists(destination_file_path):
+                        if time.time() - start_time > timeout:
+                            raise TimeoutError(f"Timeout: Failed to create PDF file from Word document.")
+                        time.sleep(1)
+                    if not os.path.exists(destination_file_path):
+                        raise FileNotFoundError(f"Failed to create PDF file from Word document.")
+                    else:
+                        print(f"PDF file created successfully: {destination_file_path}")
+                        return destination_file_path
+                except Exception as e:
+                    print(f"Error while creating PDF file from Word document: {e}")
+                    raise
+
+            path_to_converted_file = convert_docx_to_pdf(
+                source_file_path=folder_path,
+                destination_path=metadata['destinationPath'],
+                new_filename=metadata['dischargeDocumentFilename'],
+                temp_filename=word_window.Name.split(" - ")[0]
+            )
+
+            def kill_process_by_name(process_name):
+                for proc in psutil.process_iter(attrs=['pid', 'name']):
+                    if proc.info['name'] == process_name:
+                        proc.kill()
+                        print(f"Killed process: {process_name} (PID: {proc.info['pid']})")
+
+            kill_process_by_name("WINWORD.EXE")
+            self.open_sub_tab("Dokumenter")
+            self.create_document(document_full_path=path_to_converted_file)
+        except Exception as e:
+            print(f"Error while creating document from template: {e}")
+            raise
+        finally:
+            shutil.rmtree(folder_path, ignore_errors=True)
+
+    def send_discharge_document_digitalpost(self, metadata: dict) -> None:
+        """
+        Sends the discharge document via Digital Post to the patient.
+        """
+        try:
+            self.open_tab("Stamkort")
+            self.open_sub_tab("Dokumenter")
+
+            document_list = self.wait_for_control(
+                auto.ListControl,
+                {"AutomationId": "cleverListView1"},
+                search_depth=12
+            )
+            for row in document_list.GetChildren():
+                if isinstance(row, auto.ListItemControl):
+                    if row.Name == metadata['documentTitle']:
+                        row.RightClick(simulateMove=False, waitTime=0)
+                        break
+
+            right_click_menu = self.wait_for_control(
+                auto.MenuControl,
+                {"Name": "Kontekst"},
+                search_depth=2
+            )
+            right_click_menu.MenuItemControl(Name="Send til digital postkasse").GetLegacyIAccessiblePattern().DoDefaultAction()
+
+            digital_message_window = self.wait_for_control(
+                auto.WindowControl,
+                {'AutomationId': 'ToolContextWrapperUI'},
+                search_depth=2
+            )
+            digital_message_window_group = digital_message_window.PaneControl(AutomationId="viewPortPanel").PaneControl(AutomationId="SendNemSMSMessageControl").GroupControl(AutomationId="groupBoxMain")
+            digital_message_window_group.EditControl(AutomationId="textBoxSubject").GetPattern(auto.PatternId.ValuePattern).SetValue(metadata['digitalPostSubject'])
+
+            is_discharge_document_attachment = digital_message_window_group.PaneControl(AutomationId="panel2").ListControl(AutomationId="listBoxAttachment").ListItemControl(Name=metadata['documentTitle'])
+            if is_discharge_document_attachment is None:
+                raise ValueError(f"Discharge document '{metadata['documentTitle']}' not found in the attachment list.")
+
+            self.wait_for_control(
+                auto.PaneControl,
+                {'AutomationId': '&Send'},
+                search_depth=4,
+                timeout=5
+            ).Click(simulateMove=False, waitTime=0)
+
+            try:
+                self.wait_for_control(
+                    auto.TextControl,
+                    {'Name': 'Kan ikke sende Digital Post uden modtager.'},
+                    search_depth=4,
+                    timeout=5
+                )
+
+                self.wait_for_control(
+                    auto.ButtonControl,
+                    {'Name': 'OK'},
+                    search_depth=4
+                ).Click(simulateMove=False, waitTime=0)
+
+                self.wait_for_control(
+                    auto.PaneControl,
+                    {'Name': 'Annuller'},
+                    search_depth=5
+                ).Click(simulateMove=False, waitTime=0)
+                raise ValueError("Cannot send Digital Post without a recipient.")
+            except TimeoutError:
+                pass
+            except ValueError as e:
+                print(f"Error while sending discharge document via DigitalPost: {e}")
+                raise
+        except Exception as e:
+            print(f"Error while sending discharge document via DigitalPost: {e}")
+            raise
+
+    def create_digital_printet_journal(self, document_type: str) -> None:
+        """
+        Creates a digital printet journal for the patient
+        and stores it in the documentsilo.
+        """
+        try:
+            menu_fil_button = self.find_element_by_property(
+                control=self.app_window,
+                control_type=auto.ControlType.MenuItemControl,
+                name="Fil"
+            )
+            menu_fil_button.Click(simulateMove=False, waitTime=0)
+            print_journal_button = self.find_element_by_property(
+                control=self.app_window,
+                control_type=auto.ControlType.MenuItemControl,
+                name="Udskriv journal"
+            )
+            print_journal_button.Click(simulateMove=False, waitTime=0)
+
+            print_journal_window = self.wait_for_control(
+                auto.WindowControl,
+                {'AutomationId': 'JournalPrintForm'},
+                search_depth=3
+            )
+
+            stamkort_toggle_state = print_journal_window.CheckBoxControl(AutomationId="datacardCheckbox").GetPattern(auto.PatternId.TogglePattern).ToggleState
+            if stamkort_toggle_state == 1:
+                print_journal_window.CheckBoxControl(AutomationId="datacardCheckbox").GetPattern(auto.PatternId.TogglePattern).Toggle()
+
+            print_journal_window.PaneControl(AutomationId="printButton").Click(simulateMove=False, waitTime=0)
+
+            journal_pdf_window = self.wait_for_control(
+                auto.WindowControl,
+                {'ClassName': 'AcrobatSDIWindow'},
+                search_depth=2
+            )
+            pdf_filename = journal_pdf_window.Name.split(" - ")[0]
+
+            journal_pdf_window.GetWindowPattern().Close()
+
+            self.open_tab("Stamkort")
+            self.open_sub_tab("Dokumenter")
+
+            document_list = self.wait_for_control(
+                auto.ListControl,
+                {'AutomationId': 'cleverListView1'},
+                search_depth=11,
+            )
+
+            target_values = {pdf_filename}
+            for item in document_list.GetChildren():
+                if item.ControlType == auto.ControlType.ListItemControl:
+                    sub_items = [sub.Name for sub in item.GetChildren()]
+                    if target_values.issubset(set(sub_items)):
+                        document_selector = item
+                        break
+
+            document_selector.GetPattern(10017).ScrollIntoView()
+            document_selector.SetFocus()
+            document_selector.RightClick(simulateMove=False, waitTime=0)
+
+            document_list_menu = self.wait_for_control(
+                auto.MenuControl,
+                {'Name': 'Kontekst'},
+                search_depth=2
+            )
+
+            menu_create_document = self.find_element_by_property(
+                control=document_list_menu,
+                control_type=auto.ControlType.MenuItemControl,
+                name="Rediger"
+            )
+            menu_create_document.Click(simulateMove=False, waitTime=0)
+
+            create_document_window = self.wait_for_control(
+                auto.WindowControl,
+                {'AutomationId': 'EditFile'},
+                search_depth=3
+            )
+
+            document_type_drop_down = self.find_element_by_property(
+                control=create_document_window,
+                control_type=auto.ControlType.ButtonControl,
+                name="Åbn"
+            )
+            document_type_drop_down.Click(simulateMove=False, waitTime=0)
+
+            document_type_button = self.find_element_by_property(
+                control=create_document_window,
+                control_type=auto.ControlType.ListItemControl,
+                name=document_type
+            )
+            document_type_button.Click(simulateMove=False, waitTime=0)
+
+            button_create_document = self.find_element_by_property(
+                control=create_document_window,
+                control_type=auto.ControlType.PaneControl,
+                automation_id="buttonOpen"
+            )
+            button_create_document.Click(simulateMove=False, waitTime=0)
+        except Exception as e:
+            print(f"Error while creating journal note: {e}")
+            raise

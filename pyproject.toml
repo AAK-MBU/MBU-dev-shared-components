@@ -4,7 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mbu_dev_shared_components"
-version = "0.3.6"
+version = "0.4.0"  # Specify the version manually here
+
 authors = [
   { name="MBU", email="rpa@mbu.aarhus.dk" },
 ]
@@ -24,4 +25,7 @@ dependencies = [
   "cryptography >= 43.0.0",
   "office365-rest-python-client",
   "uiautomation",
+  "pillow",
+  "psutil",
+  "docx2pdf",
 ]
