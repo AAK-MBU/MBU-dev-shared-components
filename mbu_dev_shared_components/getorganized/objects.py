@@ -73,7 +73,14 @@ class CaseDataJson:
         }
 
         if case_title is not None:
-            # Optionally add case_title to your search criteria
+            # Change the value of the existing case category to "Standard"
+            for field in search_case_folder_data["FieldProperties"]:
+                if field["InternalName"] == "ows_CaseCategory":
+                    field["Value"] = "Standard"
+
+                    break
+
+            # Optionally add the case title property
             search_case_folder_data["FieldProperties"].append({
                 "InternalName": "ows_CaseTitle",
                 "Value": case_title,
