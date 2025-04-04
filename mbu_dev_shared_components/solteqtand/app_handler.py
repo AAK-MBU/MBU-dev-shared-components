@@ -805,7 +805,7 @@ class SolteqTandApp:
             # End with raise error where resulting dates are printed
             print("Dates after insert not matching input")
             print((
-                f"'From' input: {from_date.strftime(format="%d. %B %Y")} " +
+                f"'From' input: {from_date.strftime(format='%d. %B %Y')} " +
                 f"Current value: {dt_picker_from.Name}"))
 
         dt_picker_to = self.wait_for_control(
