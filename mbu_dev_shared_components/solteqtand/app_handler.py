@@ -831,7 +831,7 @@ class SolteqTandApp:
         except Exception:
             print("Dates after insert not matching input")
             print((
-                f"'To' input: {to_date.strftime(format="%d. %B %Y")} " +
+                f"'To' input: {to_date.strftime(format='%d. %B %Y')} " +
                 f"Current value: {dt_picker_to.Name}"))
 
     def pick_appointment_types_aftalebog(self, appointment_types: str | list):
