@@ -127,12 +127,15 @@ class Sharepoint:
         return None
 
     def fetch_file_using_open_binary(self, file_name: str, folder_name: str) -> Optional[bytes]:
+        """
+        Downloads a file using the open_binary method from SharePoint.
+        """
         if self.ctx:
             try:
                 file_url = f"/teams/{self.site_name}/{self.document_library}/{folder_name}/{file_name}"
                 file_content = File.open_binary(self.ctx, file_url)
                 return file_content.content
-            except Exception as e:
+            except Exception:
                 import traceback
                 print("Failed to download file:")
                 traceback.print_exc()
@@ -230,7 +233,7 @@ class Sharepoint:
     def upload_file_from_bytes(self, binary_content: bytes, file_name: str, folder_name: str):
         """
         Uploads a file to SharePoint directly from a bytes object.
-        
+
         Args:
             binary_content (bytes): The binary content of the file.
             file_name (str): The name to give the file in SharePoint.
@@ -241,7 +244,7 @@ class Sharepoint:
             try:
                 folder_url = f"/teams/{self.site_name}/{self.document_library}/{folder_name}"
                 target_folder = self.ctx.web.get_folder_by_server_relative_url(folder_url)
-                
+
                 target_folder.upload_file(file_name, binary_content).execute_query()
                 print(f"File '{file_name}' uploaded successfully to '{folder_url}'.")
             except Exception as e:
