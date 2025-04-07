@@ -805,7 +805,7 @@ class SolteqTandApp:
             # End with raise error where resulting dates are printed
             print("Dates after insert not matching input")
             print((
-                f"'From' input: {from_date.strftime(format="%d. %B %Y")} " +
+                f"'From' input: {from_date.strftime(format='%d. %B %Y')} " +
                 f"Current value: {dt_picker_from.Name}"))
 
         dt_picker_to = self.wait_for_control(
@@ -831,7 +831,7 @@ class SolteqTandApp:
         except Exception:
             print("Dates after insert not matching input")
             print((
-                f"'To' input: {to_date.strftime(format="%d. %B %Y")} " +
+                f"'To' input: {to_date.strftime(format='%d. %B %Y')} " +
                 f"Current value: {dt_picker_to.Name}"))
 
     def pick_appointment_types_aftalebog(self, appointment_types: str | list):
