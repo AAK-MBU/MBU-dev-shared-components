@@ -40,5 +40,5 @@ def fetch_env(db_env):
     if db_env.upper() == "TEST":
         connection_env = "DbConnectionStringTest"
         return connection_env
-    else:
-        raise ValueError(f"arg db_env is {db_env.upper()} but should be 'PROD' or 'TEST'")
+    
+    raise ValueError(f"arg db_env is {db_env.upper()} but should be 'PROD' or 'TEST'")
