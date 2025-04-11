@@ -9,13 +9,13 @@ import hashlib
 from cryptography.fernet import Fernet
 
 
-class Encryptor:
+class Encryptor():
     """
     A class for encrypting and decrypting data using the Fernet symmetric encryption algorithm.
     """
 
-    def __init__(self):
-        self.key = os.getenv("OpenOrchestratorKey")
+    def __init__(self, key = os.getenv("OpenOrchestratorKey")):
+        self.key = key
         if not self.key:
             raise ValueError("Environment variable 'OpenOrchestratorKey' is not set or is empty.")
         self.cipher_suite = self.generate_cipher_suite()
