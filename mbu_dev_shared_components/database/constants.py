@@ -40,7 +40,7 @@ def add_credential(
 def get_credential(
         credential_name: str,
         db_env: str = "PROD"
-    ) -> tuple:
+    ) -> dict:
     
     rpa_conn = connect_to_db(db_env=db_env)
     cursor = rpa_conn.cursor()
