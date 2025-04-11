@@ -9,7 +9,7 @@ import hashlib
 from cryptography.fernet import Fernet
 
 
-class Encryptor():
+class Encryptor:
     """
     A class for encrypting and decrypting data using the Fernet symmetric encryption algorithm.
     """
