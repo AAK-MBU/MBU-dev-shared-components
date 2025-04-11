@@ -45,7 +45,6 @@ def get_credential(
     rpa_conn = connect_to_db(db_env=db_env)
     cursor = rpa_conn.cursor()
     encryptor = Encryptor()
-    encryptor.key = os.getenv("OpenOrchestratorKeyTest")
 
     query = """
         SELECT 
