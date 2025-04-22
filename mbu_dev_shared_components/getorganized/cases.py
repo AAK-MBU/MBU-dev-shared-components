@@ -4,6 +4,26 @@ import requests
 from mbu_dev_shared_components.getorganized.auth import get_ntlm_go_api_credentials
 
 
+def get_case_metadata(api_endpoint: str, api_username: str, api_password: str) -> requests.Response:
+    """
+    Sends a GET request to fetch metadata for a given case in GO
+
+    Parameters:
+    api_endpoint (str): GetOrganized API endpoint.
+    api_username (str): The API username for GetOrganized API.
+    api_password (str): The API password for GetOrganized API.
+
+    Returns:
+    requests.Response: The response object from the API.
+    """
+
+    headers = {"Content-Type": "application/json"}
+
+    response = requests.request(method='GET', url=api_endpoint, headers=headers, auth=get_ntlm_go_api_credentials(api_username, api_password), timeout=60)
+
+    return response
+
+
 def find_case_by_case_properties(case_data: str, api_endpoint: str, api_username: str, api_password: str) -> requests.Response:
     """
     Sends a POST request to search for cases based on specific case properties provided in `case_data`.
