@@ -34,9 +34,74 @@ class CaseDataJson:
         }
         return case_data
 
-    def search_case_folder_data_json(self, case_type_prefix: CaseTypePrefix, person_full_name: str, person_id: str, person_ssn: str, case_title: str = None) -> str:
+    def generic_search_case_data_json(self, case_type_prefix: CaseTypePrefix, person_full_name: str, person_id: str, person_ssn: str, include_name: bool = True, returned_cases_number: str = "1", field_properties: dict = None) -> str:
         """
         Creates a JSON string representing a search string for case folder with the provided attributes.
+        It is possible to provide a field_properties list, which can contain additional properties for the search.
+
+        Parameters:
+        case_type_prefix (CaseTypePrefix): The prefix indicating the type of the case. Must be one of the predefined literal values.
+        person_full_name (str): The full name of the person associated with the case.
+        person_id (str): The ID of the person associated with the case.
+        person_ssn (str): The Social Security Number of the person associated with the case.
+        include_name (str): Whether or not, the person_full_name should be included in the contact_data for the search
+        returned_cases_number (str): The number of returned results
+        field_properties: A list of desired field properties to add, in order to specify the search
+
+        Returns:
+        dict: A dictionary representing the search criteria for the case folder in JSON format.
+        """
+
+        search_case_folder_data = {
+            "FieldProperties": [],
+            "CaseTypePrefixes": [
+                f"{case_type_prefix}"
+            ],
+            "LogicalOperator": "AND",
+            "ExcludeDeletedCases": "True",
+            "ReturnCasesNumber": returned_cases_number
+        }
+
+        if include_name:
+            search_case_folder_data["FieldProperties"].append(
+                {
+                    "InternalName": "ows_CCMContactData",
+                    "Value": f"{person_full_name};#{person_id};#{person_ssn};#;#",
+                    "DataType": "Text",
+                    "ComparisonType": "Equal",
+                    "IsMultiValue": "False"
+                }
+            )
+
+        else:
+            search_case_folder_data["FieldProperties"].append(
+                {
+                    "InternalName": "ows_CCMContactData",
+                    "Value": f";#{person_id};#{person_ssn};#;#",
+                    "DataType": "Text",
+                    "ComparisonType": "Equal",
+                    "IsMultiValue": "False"
+                }
+            )
+
+        # Could be CaseTitle, CaseCategory, CaseProfile etc.
+        if len(field_properties) != 0:
+            for field_property_key, field_property_value in field_properties.items():
+                search_case_folder_data["FieldProperties"].append(
+                    {
+                        "InternalName": str(field_property_key),
+                        "Value": field_property_value,
+                        "DataType": "Text",
+                        "ComparisonType": "Equal",
+                        "IsMultiValue": "False"
+                    }
+                )
+
+        return search_case_folder_data
+
+    def search_citizen_folder_data_json(self, case_type_prefix: CaseTypePrefix, person_full_name: str, person_id: str, person_ssn: str) -> str:
+        """
+        Creates a JSON string, representing a search string, used to retrieve a GetOrganized citizen folder, leveraging provided citizen data
 
         Parameters:
         case_type_prefix (CaseTypePrefix): The prefix indicating the type of the case. Must be one of the predefined literal values.
@@ -71,23 +136,6 @@ class CaseDataJson:
             "ExcludeDeletedCases": "True",
             "ReturnCasesNumber": "1"
         }
-
-        if case_title is not None:
-            # Change the value of the existing case category to "Standard"
-            for field in search_case_folder_data["FieldProperties"]:
-                if field["InternalName"] == "ows_CaseCategory":
-                    field["Value"] = "Standard"
-
-                    break
-
-            # Optionally add the case title property
-            search_case_folder_data["FieldProperties"].append({
-                "InternalName": "ows_CaseTitle",
-                "Value": case_title,
-                "DataType": "Text",
-                "ComparisonType": "Equal",
-                "IsMultiValue": "False"
-            })
 
         return search_case_folder_data
 

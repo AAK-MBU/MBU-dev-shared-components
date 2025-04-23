@@ -3,6 +3,26 @@ import requests
 from mbu_dev_shared_components.getorganized.auth import get_ntlm_go_api_credentials
 
 
+def get_document_metadata(api_endpoint: str, api_username: str, api_password: str) -> requests.Response:
+    """
+    Sends a GET request to fetch metadata for a given document in GO
+
+    Parameters:
+    api_endpoint (str): GetOrganized API endpoint.
+    api_username (str): The API username for GetOrganized API.
+    api_password (str): The API password for GetOrganized API.
+
+    Returns:
+    requests.Response: The response object from the API.
+    """
+
+    headers = {"Content-Type": "application/json"}
+
+    response = requests.request(method='GET', url=api_endpoint, headers=headers, auth=get_ntlm_go_api_credentials(api_username, api_password), timeout=60)
+
+    return response
+
+
 def upload_file_to_case(file_data: str, api_endpoint: str, api_username: str, api_password: str) -> requests.Response:
     """
     Uploads a file to a case by sending file data as a JSON payload to a specific API endpoint.
@@ -75,9 +95,40 @@ def finalize_file(documents_id: list, api_endpoint: str, api_username: str, api_
     payload = {
         "DocumentIds": documents_id,
         "ShouldCloseOpenTasks": False
-        }
+    }
 
     response = requests.request(method='POST', url=api_endpoint, headers=headers, json=payload, auth=get_ntlm_go_api_credentials(api_username, api_password), timeout=60)
     response.raise_for_status()
+
+    return response
+
+
+def search_documents(search_term: str, api_endpoint: str, api_username: str, api_password: str) -> requests.Response:
+    """
+    Looks for documents in GetOrganized related to the specified search term
+
+    Parameters:
+    search_term (str): The phrase/term to be searched for in GetOrganized.
+    api_endpoint (str): GetOrganized API endpoint.
+    api_username (str): The API username for GetOrganized API.
+    api_password (str): The API password for GetOrganized API.
+
+    Returns:
+    requests.Response: The response object from the API.
+
+    Raises:
+    requests.RequestException: If the HTTP request fails for any reason.
+    """
+
+    payload = {
+        "SearchPhrase": search_term,
+        "AdditionalColumns": [],
+        "ResultLimit": 25,
+        "StartRow": 1
+    }
+
+    headers = {'Content-Type': 'application/json'}
+
+    response = requests.request(method='POST', url=api_endpoint, headers=headers, json=payload, auth=get_ntlm_go_api_credentials(api_username, api_password), timeout=60)
 
     return response
