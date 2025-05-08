@@ -21,7 +21,7 @@ def execute_stored_procedure(connection_string: str, stored_procedure: str, para
 
     Returns:
         Dict[str, Union[bool, str, Any]]: A dictionary containing the success status, an error message (if any),
-                                           and additional data.
+                                           number of affected rows, and additional data.
     """
     result = {
         "success": False,
