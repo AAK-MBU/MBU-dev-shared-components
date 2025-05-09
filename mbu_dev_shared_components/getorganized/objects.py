@@ -85,7 +85,7 @@ class CaseDataJson:
             )
 
         # Could be CaseTitle, CaseCategory, CaseProfile etc.
-        if len(field_properties) != 0:
+        if field_properties:
             for field_property_key, field_property_value in field_properties.items():
                 search_case_folder_data["FieldProperties"].append(
                     {
