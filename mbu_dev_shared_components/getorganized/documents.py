@@ -123,8 +123,68 @@ def search_documents(search_term: str, api_endpoint: str, api_username: str, api
     payload = {
         "SearchPhrase": search_term,
         "AdditionalColumns": [],
-        "ResultLimit": 25,
-        "StartRow": 1
+        "ResultLimit": 500,
+        "StartRow": 0
+    }
+
+    headers = {'Content-Type': 'application/json'}
+
+    response = requests.request(method='POST', url=api_endpoint, headers=headers, json=payload, auth=get_ntlm_go_api_credentials(api_username, api_password), timeout=60)
+
+    return response
+
+
+def modern_search(page_index, search_term: str, start_date, end_date, only_items: bool, case_type_prefix: str, api_endpoint: str, api_username: str, api_password: str) -> requests.Response:
+    """
+    Looks for documents in GetOrganized related to the specified search term
+
+    Parameters:
+    search_term (str): The phrase/term to be searched for in GetOrganized.
+    api_endpoint (str): GetOrganized API endpoint.
+    api_username (str): The API username for GetOrganized API.
+    api_password (str): The API password for GetOrganized API.
+
+    Returns:
+    requests.Response: The response object from the API.
+
+    Raises:
+    requests.RequestException: If the HTTP request fails for any reason.
+    """
+
+    payload = {
+        "QueryPageIndex": page_index,
+        "PageSize": 500,
+        "QueryPhrase": f"{search_term}",
+        "QueryType": "DocumentLibrary",
+        "TrimToOpenedCases": False,
+        "ResultTypeName": "Dokumenter",
+        "SearchContentDefinitionEntryType": 0,
+        "AdditionalSelectColumns": [],
+        "ResultTypeListNameOrType": None,
+        "ResultTypeSearchOnlyItems": only_items,
+        "ResultTypeQueryFilter": None,
+        "CaseQueryFieldCollection": [
+            {
+                "DisplayName": "Sag oprettet",
+                "Guid": None,
+                "InternalName": "Created",
+                "Type": "SPFieldType.DateTime",
+                "Value": f"{start_date}T22:00:00.000Z",
+                "ToValue": f"{end_date}T22:00:00.000Z",
+                "IsTaxId": False,
+                "DecodeCrawledName": False,
+                "IsOrCondition": None,
+                "MappedName": "CCMCreatedCASEPROP"
+            }
+        ],
+        "QueryFieldCollection": [],
+        "CaseTypePrefixes": [
+            f"{case_type_prefix}"
+        ],
+        "SortDirection1": 1,
+        "ResultViewSortOrder1": 2,
+        "ResultViewSortOrder2": 2,
+        "QueryScope": 0
     }
 
     headers = {'Content-Type': 'application/json'}
