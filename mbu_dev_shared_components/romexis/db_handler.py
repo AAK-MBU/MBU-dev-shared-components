@@ -132,6 +132,58 @@ class RomexisDbHandler:
             WHERE
                 rii.[image_id] IN ({placeholders})
                 AND rii.[image_type] IN (1, 2, 3, 4)
+                AND rii.[status] != 5
         """
 
         return self._execute_query(query, tuple(image_ids))
+
+    def get_gamma_data(self, image_id: int) -> list:
+        """
+        Gets gamma data from the database.
+
+        Returns:
+            list: A list of dictionaries, where each dictionary represents a gamma.
+        """
+        query = """
+            WITH ImageList AS (
+            SELECT image_id
+            FROM [Romexis_db].[dbo].[RIM_Image_Info]
+            WHERE image_id = ?
+            ),
+            RankedOps AS (
+            SELECT
+                imo.*,
+                ROW_NUMBER() OVER (
+                PARTITION BY imo.image_id
+                ORDER BY 
+                    imo.updated_date DESC,
+                    imo.updated_time DESC
+                ) AS rn
+            FROM [Romexis_db].[dbo].[RIM_Image_Operation] imo
+            JOIN ImageList ii
+                ON ii.image_id = imo.image_id
+            WHERE imo.status = 1
+            )
+            SELECT
+                imop.operation_id,
+                imop.param_type,
+                imop.param_value AS gamma_value,
+                imop.local_change_id,
+                imop.master_change_id,
+                imop.original_local_id,
+                ro.image_id,
+                imi.image_date,
+                imi.image_time,
+                ro.updated_date,
+                ro.updated_time
+            FROM [Romexis_db].[dbo].[RIM_Image_Op_Param] imop
+            JOIN RankedOps ro
+            ON ro.operation_id = imop.operation_id
+            AND ro.rn = 1
+            JOIN [Romexis_db].[dbo].[RIM_Image_Info] imi
+            ON imi.image_id = ro.image_id
+            WHERE imop.param_type = 3
+            ORDER BY imi.image_date, imi.image_time;
+        """
+
+        return self._execute_query(query, (image_id,))
