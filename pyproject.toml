@@ -27,4 +27,5 @@ dependencies = [
   "pillow",
   "psutil",
   "docx2pdf",
+  "rawpy",
 ]
