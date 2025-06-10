@@ -1,14 +1,13 @@
 import uiautomation as auto
 
-from .base_ui import BaseUI
+from .handler_base import HandlerBase
 from .exceptions import ManualProcessingRequiredError
 
 
-class AppointmentHandler(BaseUI):
+class AppointmentHandler(HandlerBase):
     """
     Handles appointment-related UI interactions.
     """
-
     def get_list_of_appointments(self) -> dict: 
         """
         Gets list of appointments as found in patient window

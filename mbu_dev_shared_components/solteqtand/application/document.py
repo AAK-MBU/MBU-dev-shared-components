@@ -6,10 +6,10 @@ import psutil
 from docx2pdf import convert
 import uiautomation as auto
 
-from .base_ui import BaseUI
+from .handler_base import HandlerBase
 
 
-class DocumentHandler(BaseUI):
+class DocumentHandler(HandlerBase):
     """
     Handles everything under the “Dokumenter” sub-tab in a patient's record,
     including creating a document, merging from a template, converting DOCX → PDF,

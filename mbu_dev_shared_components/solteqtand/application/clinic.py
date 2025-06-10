@@ -1,9 +1,9 @@
 import uiautomation as auto
 
-from .base_ui import BaseUI
+from .handler_base import HandlerBase
 
 
-class ClinicHandler(BaseUI):
+class ClinicHandler(HandlerBase):
     """
     Handles changing the primart clinic for a patient (if it's not "Tandplejen Aarhus").
     """

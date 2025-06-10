@@ -2,10 +2,10 @@
 import time
 import uiautomation as auto
 
-from .base_ui import BaseUI
+from .handler_base import HandlerBase
 
 
-class EDIHandler(BaseUI):
+class EDIHandler(HandlerBase):
     """
     Handles the EDI Portal UI interactions.
     """

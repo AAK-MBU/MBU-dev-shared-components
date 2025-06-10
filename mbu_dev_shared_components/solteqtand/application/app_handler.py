@@ -1,56 +1,45 @@
-
+"""This module contains the PatientHandler class, which manages patient-related actions in the Solteq Tand application."""
 import os
-import time
 import uiautomation as auto
 
 from .base_ui import BaseUI
-from .patient import PatientHandler
-from .document import DocumentHandler
-from .appointment import AppointmentHandler
-from .edi_portal import EDIHandler
-from .clinic import ClinicHandler
-from .event import EventHandler
-from .exceptions import (
-    ManualProcessingRequiredError,
-    NotMatchingError,
-    PatientNotFoundError,
-)
 
 
-class SolteqTandApp(
-    BaseUI,
-    PatientHandler,
-    DocumentHandler,
-    AppointmentHandler,
-    EDIHandler,
-    ClinicHandler,
-    EventHandler
-):
+class SolteqTandApp(BaseUI):
     """
     Main application handler for Solteq Tand, integrating various components.
-    
-    Inherits from:
-        BaseUI: Provides basic UI interaction methods.
-        PatientHandler: Handles patient-related operations.
-        DocumentHandler: Manages document operations.
-        AppointmentHandler: Manages appointment operations.
-        EDIHandler: Handles EDI portal interactions.
-        ClinicHandler: Manages clinic-related operations.
-        EventHandler: Processes events in the application.
+    Inherits from BaseUI for core UI methods, and composes all feature handlers.
     """
-    
+
     def __init__(self, app_path: str, username: str = None, password: str = None):
         """
         Initializes the Solteq Tand application handler.
-        
         Args:
             app_path (str): Path to the Solteq Tand application executable.
+            username (str): Username for login.
+            password (str): Password for login.
         """
+        super().__init__()
         self.app_path = app_path
         self.username = username
         self.password = password
         self.app_window = None
-    
+
+        # Compose feature handlers, passing this App as parent
+        from .patient import PatientHandler
+        from .appointment import AppointmentHandler
+        from .document import DocumentHandler
+        from .edi_portal import EDIHandler
+        from .clinic import ClinicHandler
+        from .event import EventHandler
+
+        self.patient = PatientHandler(self)
+        self.appointment = AppointmentHandler(self)
+        self.document = DocumentHandler(self)
+        self.edi = EDIHandler(self)
+        self.clinic = ClinicHandler(self)
+        self.event = EventHandler(self)
+
     def start_application(self):
         """
         Starts the application using the specified path.
