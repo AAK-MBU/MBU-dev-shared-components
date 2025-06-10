@@ -52,21 +52,44 @@ class SolteqTandDatabase:
         """
         params = []
         where_clauses = []
+        COMPARATORS = {"<", "<=", ">", ">="}
 
         # Handling AND filters
         if filters:
             for key, value in filters.items():
-                if isinstance(value, tuple) and len(value) == 2:  # BETWEEN filtering
+                # Explicit comparator (tuple with operator and value)
+                # Example: {"column": ("<", value)}
+                if (
+                    isinstance(value, tuple)
+                    and len(value) == 2
+                    and value[0] in COMPARATORS
+                ):
+                    op, val = value
+                    where_clauses.append(f"{key} {op} ?")
+                    params.append(val)
+
+                # BETWEEN filtering (tuple of two values)
+                # Example: {"column": (value1, value2)}
+                elif isinstance(value, tuple) and len(value) == 2:
                     where_clauses.append(f"{key} BETWEEN ? AND ?")
                     params.extend(value)
-                elif isinstance(value, list):  # IN filtering
+
+                # IN filtering
+                # Example: {"column": [value1, value2, ...]}
+                elif isinstance(value, list):
                     placeholders = ", ".join("?" for _ in value)
                     where_clauses.append(f"{key} IN ({placeholders})")
                     params.extend(value)
-                elif isinstance(value, str) and "%" in value:  # LIKE filtering
+
+                # LIKE filtering
+                # Example: {"column": "value%"}
+                elif isinstance(value, str) and "%" in value:
                     where_clauses.append(f"{key} LIKE ?")
                     params.append(value)
-                else:  # Default equality filtering
+
+                # Default equality filtering
+                # Example: {"column": value}
+                else:
                     where_clauses.append(f"{key} = ?")
                     params.append(value)
 
@@ -132,6 +155,7 @@ class SolteqTandDatabase:
                     dss.Document_HistoryId,
                     dss.DocumentStoreStatusId,
                     dss.SentToNemSMS,
+                    dss.DocumentedBy,
                     dss.Documented AS [DocumentCreatedDate],
                     dss.Decided AS [DocumentLastEditedDate],
                     ROW_NUMBER() OVER (
@@ -148,17 +172,20 @@ class SolteqTandDatabase:
                 ds.UniqueFilename,
                 ds.DocumentType,
                 ds.DocumentDescription,
+                ds.DocumentedBy,
                 ds.DocumentCreatedDate,
                 ds.DocumentLastEditedDate,
                 ds.SentToNemSMS,
                 ds.rn,
                 ds.DocumentStoreStatusId,
-                p.cpr
+                p.cpr,
+				CONCAT('\\\\srvapptmt02\\WebDav\\', SUBSTRING(UniqueFilename,0,3),'\\',UniqueFilename) AS fileSourcePath
             FROM [tmtdata_prod].[dbo].[PATIENT] p
             JOIN LatestActiveDocuments ds ON ds.entityId = p.patientId
             WHERE 1=1
         """
         final_query, params = self._construct_sql_statement(base_query, filters, or_filters, order_by, order_direction)
+
         return self._execute_query(final_query, params)
 
     def get_list_of_extern_dentist(self, filters=None, or_filters=None, order_by=None, order_direction="ASC"):
@@ -217,6 +244,7 @@ class SolteqTandDatabase:
             WHERE	1=1
         """
         final_query, params = self._construct_sql_statement(base_query, filters, or_filters, order_by, order_direction)
+
         return self._execute_query(final_query, params)
 
     def get_list_of_events(self, filters=None, or_filters=None, order_by=None, order_direction="ASC"):
@@ -268,9 +296,13 @@ class SolteqTandDatabase:
                     p.lastName,
                     p.preferredDentalClinicId,
                     p.isPreferredDentalClinicLocked,
-                    c.name AS preferredDentalClinicName
+                    c.name AS preferredDentalClinicName,
+                    k.text AS patientStatus,
+                    d.name AS clinicianName
             FROM [tmtdata_prod].[dbo].[PATIENT] p
             JOIN [CLINIC] c ON c.clinicId = p.preferredDentalClinicId
+            JOIN [KEYWORD] k ON k.keywordId = 'patientStatus' AND k.[value] = p.patientStatus
+            LEFT JOIN [DENTIST] d ON d.dentistId = p.dentistId
             WHERE	1=1
         """
         final_query, params = self._construct_sql_statement(base_query, filters, or_filters, order_by, order_direction)
