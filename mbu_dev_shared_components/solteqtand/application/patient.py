@@ -2,11 +2,11 @@
 import time
 import uiautomation as auto
 
-from .base_ui import BaseUI
+from .handler_base import HandlerBase
 from .exceptions import PatientNotFoundError, NotMatchingError
 
 
-class PatientHandler(BaseUI):
+class PatientHandler(HandlerBase):
     """Handles all patient-related actions in the Solteq Tand application."""
 
     def get_ssn_stamkort(self):
