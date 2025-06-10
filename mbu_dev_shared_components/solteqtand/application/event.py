@@ -1,9 +1,9 @@
 import uiautomation as auto
 
-from .base_ui import BaseUI
+from .handler_base import HandlerBase
 
 
-class EventHandler(BaseUI):
+class EventHandler(HandlerBase):
     """
     Handles “Hændelser” under “Stamkort”—specifically processes “Afgang til klinik 751”.
     """

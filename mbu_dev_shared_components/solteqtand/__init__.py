@@ -1,32 +1,8 @@
-"""
-This module provides the main entry point for the Solteq Tand application.
-"""
-from .application import (
-    app_handler,
-    appointment,
-    base_ui,
-    clinic,
-    document,
-    edi_portal,
-    event,
-    patient,
-    exceptions,
-    helper_functions,
-    SolteqTandApp
-)
+# mbu_dev_shared_components/solteqtand/__init__.py
+from .application import SolteqTandApp
 from .database import SolteqTandDatabase
 
 __all__ = [
-    "app_handler",
-    "appointment",
-    "base_ui",
-    "clinic",
-    "document",
-    "edi_portal",
-    "event",
-    "patient",
-    "exceptions",
-    "helper_functions",
     "SolteqTandApp",
-    "SolteqTandDatabase"
+    "SolteqTandDatabase",
 ]
