@@ -129,3 +129,12 @@ class SolteqTandApp(
         if not is_tab_selected:
             tab_button.SetFocus()
             tab_button.SendKeys('{ENTER}')
+
+    def close_solteq_tand(self):
+        """Closes the Solteq Tand application gracefully."""
+        try:
+            if self.app_window:
+                self.close_window(self.app_window)
+                self.app_window = None
+        except Exception as error:
+            print(f"Error closing Solteq Tand application window: {error}")
