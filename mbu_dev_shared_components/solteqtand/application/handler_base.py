@@ -10,4 +10,8 @@ class HandlerBase:
         self._parent = parent
 
     def __getattr__(self, name):
-        return getattr(self._parent, name)
+        parent = object.__getattribute__(self, "_parent")
+        try:
+            return object.__getattribute__(parent, name)
+        except AttributeError as exc:
+            raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'") from exc
