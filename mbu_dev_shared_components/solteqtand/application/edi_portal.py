@@ -56,15 +56,29 @@ class EDIHandler(HandlerBase):
                 auto.WindowControl, {"ClassName": "Chrome_WidgetWin_1"}, search_depth=3
             )
 
-            root_web_area = self.wait_for_control(
-                edge_window.DocumentControl, {"AutomationId": "RootWebArea"}, search_depth=14
-            )
+            edge_window.SetFocus()
 
-            next_button = self.wait_for_control(
-                auto.ButtonControl, {"Name": "Næste"}, search_depth=50
-            )
+            try:
+                next_button = self.wait_for_control(
+                    auto.ButtonControl, {"Name": "Næste"},
+                    search_depth=50,
+                    timeout=5
+                )
+            except TimeoutError:
+                next_button = None
 
-            # edge_window.SetFocus()
+            if not next_button:
+                try:
+                    next_button = self.wait_for_control(
+                        auto.ButtonControl, {"Name": "patientInformationNextButton"},
+                        search_depth=50,
+                        timeout=5
+                    )
+                except TimeoutError:
+                    next_button = None
+
+            if not next_button:
+                raise RuntimeError("Next button not found in EDI Portal")
             next_button.Click(simulateMove=False, waitTime=0)
             time.sleep(sleep_time)
         except Exception as e:
