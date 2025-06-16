@@ -355,7 +355,7 @@ class DocumentHandler(HandlerBase):
             print(f"Error while sending discharge document via DigitalPost: {e}")
             raise
 
-    def create_digital_printet_journal(self, document_type: str) -> None:
+    def create_digital_printet_journal(self) -> None:
         """
         Creates a digital printet journal for the patient
         and stores it in the documentsilo.
