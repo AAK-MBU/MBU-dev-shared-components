@@ -130,6 +130,32 @@ class SolteqTandApp(
             tab_button.SetFocus()
             tab_button.SendKeys('{ENTER}')
 
+    def open_from_main_menu(self, menu_item: str) -> None:
+        """
+        Opens menu item from Solteq main menu
+        
+        Args:
+            menu_item (str): Menu item to click (e.g. "Aftalebog")"""
+
+        # Find hyperlink
+        menu_link = self.wait_for_control(
+            control_type=auto.HyperlinkControl,
+            search_params={
+                'Name': menu_item
+            },
+            search_depth=5
+        )
+
+        menu_link.GetInvokePattern().Invoke()
+
+        self.app_window = self.wait_for_control(
+            control_type=auto.WindowControl,
+            search_params={
+                "AutomationId": "FormBooking"
+            },
+            search_depth=2
+        )
+
     def close_solteq_tand(self):
         """Closes the Solteq Tand application gracefully."""
         try:
