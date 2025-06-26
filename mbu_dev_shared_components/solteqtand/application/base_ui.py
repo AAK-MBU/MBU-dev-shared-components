@@ -97,4 +97,4 @@ class BaseUI:
 
     def close_window(self, window_to_close: auto.WindowControl) -> None:
         """Closes specified window by sending CTRL+F4 keystroke."""
-        window_to_close.SendKeys(text="^({F4})")
+        window_to_close.SendKeys(text="{CTRL}{F4}")
