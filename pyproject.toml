@@ -2,6 +2,9 @@
 requires = ["setuptools>=65.0"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+packages = ["mbu_dev_shared_components"]
+
 [project]
 name = "mbu_dev_shared_components"
 version = "2.3.0"  # Specify the version manually here
@@ -13,9 +16,9 @@ readme = "README.md"
 requires-python = ">=3.7"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: Microsoft :: Windows",
 ]
+license = "MIT"
 dependencies = [
   "openpyxl >= 3.1.2",
   "pyodbc >= 5.1.0",
