@@ -23,10 +23,12 @@ class BaseUI:
         children = control.GetChildren()
 
         for child in children:
-            if (control_type is None or child.ControlType == control_type) and \
-            (automation_id is None or child.AutomationId == automation_id) and \
-            (name is None or child.Name == name) and \
-            (class_name is None or child.ClassName == class_name):
+            if (
+                (control_type is None or child.ControlType == control_type) and
+                (automation_id is None or child.AutomationId == automation_id) and
+                (name is None or child.Name == name) and
+                (class_name is None or child.ClassName == class_name)
+            ):
                 return child
 
             found = self.find_element_by_property(child, control_type, automation_id, name, class_name)
@@ -97,4 +99,4 @@ class BaseUI:
 
     def close_window(self, window_to_close: auto.WindowControl) -> None:
         """Closes specified window by sending CTRL+F4 keystroke."""
-        window_to_close.SendKeys(text="^({F4})")
+        window_to_close.SendKeys(text="{CTRL}{F4}")
