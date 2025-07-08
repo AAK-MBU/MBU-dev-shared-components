@@ -276,6 +276,7 @@ class AppointmentHandler(HandlerBase):
         """
         try:
             self.open_tab("Stamkort")
+            self.open_sub_tab("Behandlingsstatus")
 
             create_booking_button = self.wait_for_control(
                 auto.PaneControl,
@@ -303,6 +304,14 @@ class AppointmentHandler(HandlerBase):
                             child.GetPattern(auto.PatternId.ValuePattern).SetValue(booking_reminder_data["comboBoxDentist"])
                         case "Stol":
                             child.GetPattern(auto.PatternId.ValuePattern).SetValue(booking_reminder_data["comboBoxChair"])
+
+            # Fill out text booking field
+            text_booking_field_group = manage_booking.GroupControl(AutomationId="GroupBox5")
+            for child in text_booking_field_group.GetChildren():
+                match child.AutomationId:
+                    case "TextBoxBookingText":
+                        if child.GetPattern(auto.PatternId.ValuePattern).Value != booking_reminder_data["textBoxBookingText"]:
+                            child.GetPattern(auto.PatternId.ValuePattern).SetValue(booking_reminder_data["textBoxBookingText"])
 
             # Fill out date and time
             date_and_time_group = manage_booking.GroupControl(AutomationId="GroupBox4")
