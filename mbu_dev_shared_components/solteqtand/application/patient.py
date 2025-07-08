@@ -112,13 +112,14 @@ class PatientHandler(HandlerBase):
             TimeoutError: If the patient window does not close within the expected time.
         """
 
-        title_bar_window = self.app_window.TitleBarControl()
-        title_bar_window.ButtonControl(Name="Luk").Click(simulateMove=False, waitTime=0)
+        self.app_window.SetFocus()
+        self.app_window.GetWindowPattern().Close()
 
         self.app_window = self.wait_for_control_to_disappear(
             auto.WindowControl,
             {'AutomationId': 'FormPatient'},
-            search_depth=2
+            search_depth=2,
+            timeout=30
         )
 
         self.app_window = self.wait_for_control(
@@ -127,6 +128,7 @@ class PatientHandler(HandlerBase):
             search_depth=2,
             timeout=5
         )
+        self.app_window.SetFocus()
 
     def change_status(self, status: str) -> None:
         """
