@@ -98,5 +98,12 @@ class BaseUI:
         raise TimeoutError(f"Control with parameters {search_params} did not disappear within the timeout period.")
 
     def close_window(self, window_to_close: auto.WindowControl) -> None:
-        """Closes specified window by sending CTRL+F4 keystroke."""
-        window_to_close.SendKeys(text="{CTRL}{F4}")
+        """Closes specified window."""
+        window_to_close.SetFocus()
+        window_to_close.GetWindowPattern().Close()
+
+        pop_up_window = window_to_close.WindowControl(Name="TMT - Afslut")
+        pop_up_window.SetFocus()
+        pop_up_window.ButtonControl(Name="Ja").Click(simulateMove=False, waitTime=0)
+
+        time.sleep(2)

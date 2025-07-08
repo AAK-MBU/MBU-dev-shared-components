@@ -28,6 +28,8 @@ class EDIHandler(HandlerBase):
             )
             journalforsendelse_button.Click(simulateMove=False, waitTime=0)
 
+            time.sleep(5)
+
         except Exception as e:
             print(f"Error while opening EDI Portal: {e}")
 
@@ -70,7 +72,7 @@ class EDIHandler(HandlerBase):
             if not next_button:
                 try:
                     next_button = self.wait_for_control(
-                        auto.ButtonControl, {"Name": "patientInformationNextButton"},
+                        auto.ButtonControl, {"AutomationId": "patientInformationNextButton"},
                         search_depth=50,
                         timeout=5
                     )
@@ -97,6 +99,14 @@ class EDIHandler(HandlerBase):
             dict: A dictionary containing the row count and whether the phone number matches.
         """
         try:
+            # Handle Hasle Torv Clinic special case
+            if extern_clinic_data[0]["contractorId"] == "477052" or extern_clinic_data[0]["contractorId"] == "470678":
+                contractor_id = "485055"
+                clinic_phone_number = "86135240"
+            else:
+                contractor_id = extern_clinic_data[0]["contractorId"]
+                clinic_phone_number = extern_clinic_data[0]["phoneNumber"]
+
             self.edi_portal_click_next_button(sleep_time=2)
 
             class_options = [
@@ -120,7 +130,7 @@ class EDIHandler(HandlerBase):
                     raise RuntimeError("Search box not found")
             search_box.SetFocus()
             search_box_value_pattern = search_box.GetPattern(auto.PatternId.ValuePattern)
-            search_box_value_pattern.SetValue(extern_clinic_data[0]["contractorId"])
+            search_box_value_pattern.SetValue(contractor_id)
             search_box.SendKeys("{ENTER}")
 
             time.sleep(sleep_time)
@@ -134,10 +144,14 @@ class EDIHandler(HandlerBase):
             row_count = grid_pattern.RowCount
 
             is_phone_number_match = False
+
+            if grid_pattern.GetItem(1, 0).Name == "Ingen data i tabellen":
+                return {"rowCount": 0, "isPhoneNumberMatch": False}
+
             if row_count > 0:
                 for row in range(row_count):
                     phone_number = grid_pattern.GetItem(row, 4).Name
-                    if phone_number == extern_clinic_data[0]["phoneNumber"]:
+                    if phone_number == clinic_phone_number:
                         is_phone_number_match = True
                         break
             return {"rowCount": row_count, "isPhoneNumberMatch": is_phone_number_match}
