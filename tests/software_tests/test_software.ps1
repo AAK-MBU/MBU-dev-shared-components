@@ -13,10 +13,12 @@ git pull
 
 # Create virtual environment if it doesn't exist
 if (-Not (Test-Path $venvPath)) {
+    echo "Creating $venvName"
     python -m venv $venvName
 }
 
 # Activate virtual environment
+echo "Activating $venvName"
 & "$venvPath\Scripts\Activate.ps1"
 
 # Install the repo as a package
