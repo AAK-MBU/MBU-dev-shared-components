@@ -1,6 +1,6 @@
 # Set variables
 $repoUrl = "https://github.com/AAK-MBU/MBU-dev-shared-components.git"
-$localPath = "C:\Users\AZ82370\OneDrive - Aarhus kommune\GitHub\MBU-dev-shared-components"
+$localPath = (Resolve-Path "$PSScriptRoot\..\..").Path
 $testFolder = "tests/software_tests"
 $venvPath = "$localPath\.venv"
 
