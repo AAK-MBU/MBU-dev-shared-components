@@ -4,15 +4,11 @@ $localPath = (Resolve-Path "$PSScriptRoot\..\..").Path
 $testFolder = "tests/software_tests"
 $venvPath = "$localPath\.venv"
 
-# Clone or pull the repo
-echo "Cloning git repo $repoUrl into $localPath"
-if (Test-Path $localPath) {
-    Set-Location $localPath
-    git pull
-} else {
-    git clone $repoUrl $localPath
-    Set-Location $localPath
-}
+# pull the repo
+echo "Pulling git repo $repoUrl into $localPath"
+Set-Location $localPath
+git pull
+
 
 # Create virtual environment if it doesn't exist
 if (-Not (Test-Path $venvPath)) {
