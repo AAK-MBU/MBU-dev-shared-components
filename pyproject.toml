@@ -2,9 +2,6 @@
 requires = ["setuptools>=65.0"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-packages = ["mbu_dev_shared_components"]
-
 [project]
 name = "mbu_dev_shared_components"
 version = "3.0.0"  # Specify the version manually here
