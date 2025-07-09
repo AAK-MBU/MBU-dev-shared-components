@@ -2,7 +2,7 @@
 $repoUrl = "https://github.com/AAK-MBU/MBU-dev-shared-components.git"
 $localPath = (Resolve-Path "$PSScriptRoot\..\..").Path
 $testFolder = "tests/software_tests"
-$venvPath = "$localPath\.venv"
+$venvPath = "$localPath\.test_venv"
 
 # pull the repo
 echo "Pulling git repo $repoUrl into $localPath"
@@ -35,7 +35,3 @@ try {
 echo "Running tests"
 # Run pytest
 python -m pytest --json-report --json-report-file="./$testFolder/pytest_report.json" $testFolder -p no:faulthandler
-
-# Deactivate venv and return to main folder
-deactivate
-cd ..
