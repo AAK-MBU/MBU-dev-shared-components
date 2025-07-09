@@ -60,6 +60,7 @@ class Log:
             self,
             log_db: str,
     ):
+        """Retrieve latest log message from database"""
         query = f"""
             SELECT TOP (1)
                 [level]
@@ -103,6 +104,8 @@ class Log:
             details: str = "",
     ):
         """Function to log heartbeat"""
+        # Update connection such that it autocommits
+        self.conn.autocommit = True  # Sets class attribute
         if isinstance(stop, str):
             stop = stop == "True"
         if not isinstance(heartbeat_interval, int):
