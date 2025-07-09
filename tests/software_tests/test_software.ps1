@@ -35,3 +35,6 @@ try {
 echo "Running tests"
 # Run pytest
 python -m pytest --json-report --json-report-file="./$testFolder/pytest_report.json" $testFolder -p no:faulthandler
+
+# Deactivate test_venv
+deactivate
