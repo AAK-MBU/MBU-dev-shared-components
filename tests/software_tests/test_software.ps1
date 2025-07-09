@@ -2,7 +2,8 @@
 $repoUrl = "https://github.com/AAK-MBU/MBU-dev-shared-components.git"
 $localPath = (Resolve-Path "$PSScriptRoot\..\..").Path
 $testFolder = "tests/software_tests"
-$venvPath = "$localPath\.test_venv"
+$venvName = ".test_venv"
+$venvPath = "$localPath\$venvName"
 
 # pull the repo
 echo "Pulling git repo $repoUrl into $localPath"
@@ -12,7 +13,7 @@ git pull
 
 # Create virtual environment if it doesn't exist
 if (-Not (Test-Path $venvPath)) {
-    python -m venv .venv
+    python -m venv $venvName
 }
 
 # Activate virtual environment
