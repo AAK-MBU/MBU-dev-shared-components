@@ -31,7 +31,6 @@ try {
 } catch {
     Write-Error "An error occurred during pip install: $_"
     deactivate
-    cd ..
     exit 1
 }
 
