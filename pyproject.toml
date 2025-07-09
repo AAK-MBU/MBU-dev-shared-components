@@ -29,3 +29,12 @@ dependencies = [
   "docx2pdf",
   "rawpy",
 ]
+
+[project.optional-dependencies]
+dev = [
+  "pylint",
+  "flake8",
+  "pytest",
+  "pytest-dependency",
+  "pytest-json-report",
+]
