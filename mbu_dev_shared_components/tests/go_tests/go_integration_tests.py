@@ -51,7 +51,9 @@ TEST_PERSON_CITIZEN_CASE_ID = _get_cfg("DADJ_BORGERMAPPE_SAGS_ID")
 # Authentication test
 # ---------------------------------------------------------------------------
 def test_authentication_success():
-    """Ensure valid credentials return authorized access (not 401/403)."""
+    """
+    Ensure valid credentials return authorized access (not 401/403).
+    """
 
     resp = contacts.contact_lookup(
         person_ssn=TEST_PERSON_SSN,
