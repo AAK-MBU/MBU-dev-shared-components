@@ -33,3 +33,8 @@ dependencies = [
   "docx2pdf",
   "rawpy",
 ]
+
+[project.optional-dependencies]
+dev = [
+  "pytest >= 7.0",
+]
