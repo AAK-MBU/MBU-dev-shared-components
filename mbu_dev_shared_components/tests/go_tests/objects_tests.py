@@ -61,7 +61,7 @@ def test_generic_search_case_data_json_with_name_and_extra_field(case_data_handl
     """
 
     field_properties = {
-        "ows_Titel": "Lønbilag"
+        "ows_Title": "Lønbilag"
     }
 
     result = case_data_handler.generic_search_case_data_json(
@@ -87,7 +87,7 @@ def test_generic_search_case_data_json_with_name_and_extra_field(case_data_handl
     assert result["ReturnCasesNumber"] == "5"
 
     assert {
-        "InternalName": "ows_Titel",
+        "InternalName": "ows_Title",
         "Value": "Lønbilag",
         "DataType": "Text",
         "ComparisonType": "Equal",
