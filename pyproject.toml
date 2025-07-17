@@ -31,10 +31,12 @@ dependencies = [
   "pillow",
   "psutil",
   "docx2pdf",
+  "pandas >= 2.2.3",
   "rawpy",
 ]
 
 [project.optional-dependencies]
 dev = [
   "pytest >= 7.0",
+  "pytest-dependency >= 0.5.1"
 ]
