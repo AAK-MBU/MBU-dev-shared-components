@@ -29,27 +29,22 @@ Example:
     sp.download_files("FolderName", "C:\\LocalPath")
 """
 
+import os
+
 from pathlib import PurePath
 
 from io import BytesIO
 
-import os
-from office365.runtime.auth.user_credential import UserCredential
-from office365.sharepoint.client_context import ClientContext
-
-from office365.sharepoint.files.file import File
-
-from openpyxl import load_workbook, Workbook
-
-from openpyxl.styles import Font, Alignment
-
-from openpyxl.utils.dataframe import dataframe_to_rows
-
-from openpyxl.worksheet.worksheet import Worksheet
 from typing import Optional, List, Dict, Any
 
+from openpyxl.styles import Font, Alignment
+from openpyxl import load_workbook
 
 import pandas as pd
+
+from office365.runtime.auth.user_credential import UserCredential
+from office365.sharepoint.client_context import ClientContext
+from office365.sharepoint.files.file import File
 
 
 class Sharepoint:
@@ -336,7 +331,7 @@ class Sharepoint:
         align_horizontal: str = "center",
         align_vertical: str = "center",
         freeze_panes: Optional[str] = None,
-    ) -> Worksheet:
+    ):
         """
         Sorts and formats an Excel worksheet based on provided styling and sorting rules.
 
