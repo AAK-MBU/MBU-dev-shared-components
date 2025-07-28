@@ -31,6 +31,10 @@ Example:
 
 import os
 
+import math
+
+import traceback
+
 from pathlib import PurePath
 
 from io import BytesIO
@@ -145,7 +149,6 @@ class Sharepoint:
                 file_content = File.open_binary(self.ctx, file_url)
                 return file_content.content
             except Exception:
-                import traceback
                 print("Failed to download file:")
                 traceback.print_exc()
                 return None
@@ -317,101 +320,101 @@ class Sharepoint:
 
         print(f"✔ Added row + sorted '{sheet_name}' in '{excel_file_name}'.")
 
-    # pylint: disable=W0102, R0912
     def format_and_sort_excel_file(
         self,
-        folder_name: str = "",
-        excel_file_name: str = "",
-        sheet_name: str = "",
-        sorting_keys: List[Dict[str, Any]] = [{"key": "A", "ascending": True, "type": "str"}],
+        folder_name: str,
+        excel_file_name: str,
+        sheet_name: str,
+        sorting_keys: Optional[List[Dict[str, Any]]] = None,
+        font_config: Optional[Dict[int, Dict[str, Any]]] = None,
         bold_rows: Optional[List[int]] = None,
         italic_rows: Optional[List[int]] = None,
-        font_config: Optional[Dict[int, Dict[str, Any]]] = None,
-        column_widths: Any = "auto",
         align_horizontal: str = "center",
         align_vertical: str = "center",
+        column_widths: Any = "auto",
         freeze_panes: Optional[str] = None,
     ):
         """
         Sorts and formats an Excel worksheet based on provided styling and sorting rules.
 
         Params:
-            ws: Target worksheet
+            folder_name: Name of the folder where the file resides
+            excel_file_name: Name of the excel file
+            sheet_name: Name of the sheet that will be sorted
             sorting_keys: List of dicts like [{"key": "A", "ascending": True, "type": "datetime"}]
             bold_rows: List of row numbers to bold (defaults to [1])
             italic_rows: List of row numbers to italicize
             font_config: Dict of row -> font config (overrides bold/italic)
-            column_widths: "auto" or dict like {"A": 20}
             align_horizontal: Horizontal text alignment
             align_vertical: Vertical text alignment
+            column_widths: "auto" or an int to represent a pixel value
             freeze_panes: E.g., "A2" to freeze header row
 
         Returns:
             Modified worksheet
         """
 
-        if bold_rows is None:
-            bold_rows = [1]
-
+        # Step 1 - Fetch the file to update from SharePoint and load it as a workbook
+        # This ensures we don't override any other sheets in the excel file
         binary_file = self.fetch_file_using_open_binary(excel_file_name, folder_name)
         if binary_file is None:
             raise FileNotFoundError(f"File '{excel_file_name}' not found in folder '{folder_name}'.")
 
         wb = load_workbook(BytesIO(binary_file))
-
         if sheet_name not in wb.sheetnames:
             raise ValueError(f"Sheet '{sheet_name}' not found in '{excel_file_name}'")
 
         ws = wb[sheet_name]
 
-        # 1. Read data into DataFrame
+        # Step 2 - Read data into DataFrame
         rows = list(ws.iter_rows(values_only=True))
-
         header, *data_rows = rows
-
         df = pd.DataFrame(data_rows, columns=header)
 
-        # 2. Determine sorting columns and convert types if needed
-        sort_columns = []
-        ascending_flags = []
+        # Step 3 – Prepare sorting logic
+        # For each sorting instruction, we:
+        # - Extract the column to sort by (using letter, index, or name)
+        # - Convert the column values to the desired data type if specified (str, int, float, datetime)
+        # - Track which columns to sort and in which order (ascending or descending)
+        #
+        # This ensures the DataFrame is sorted correctly, even when types like dates or numbers need conversion.
+        if sorting_keys:
+            sort_columns = []
+            ascending_flags = []
 
-        for item in sorting_keys:
-            key = item.get("key")
-            ascending = item.get("ascending", True)
-            dtype = item.get("type")
+            for item in sorting_keys:
+                key = item.get("key")
+                ascending = item.get("ascending", True)
+                dtype = item.get("type")
 
-            # Get column name from key (can be letter, index, or name)
-            if isinstance(key, int):
-                col_name = header[key]
+                if isinstance(key, int):
+                    col_name = header[key]
 
-            elif isinstance(key, str) and key.isalpha():
-                col_name = header[ord(key.upper()) - ord("A")]
+                elif isinstance(key, str) and key.isalpha():
+                    col_name = header[ord(key.upper()) - ord("A")]
 
-            else:
-                col_name = key
+                else:
+                    col_name = key
 
-            # Add to sorting list
-            sort_columns.append(col_name)
+                sort_columns.append(col_name)
+                ascending_flags.append(ascending)
 
-            ascending_flags.append(ascending)
+                if dtype == "datetime":
+                    df[col_name] = pd.to_datetime(df[col_name], dayfirst=True, errors="coerce")
 
-            # Optional: convert to desired dtype
-            if dtype == "datetime":
-                df[col_name] = pd.to_datetime(df[col_name], dayfirst=True, errors="coerce")
+                elif dtype == "int":
+                    df[col_name] = pd.to_numeric(df[col_name], errors="coerce", downcast="integer")
 
-            elif dtype == "int":
-                df[col_name] = pd.to_numeric(df[col_name], errors="coerce", downcast="integer")
+                elif dtype == "float":
+                    df[col_name] = pd.to_numeric(df[col_name], errors="coerce", downcast="float")
 
-            elif dtype == "float":
-                df[col_name] = pd.to_numeric(df[col_name], errors="coerce", downcast="float")
+                elif dtype == "str":
+                    df[col_name] = df[col_name].astype(str)
 
-            elif dtype == "str":
-                df[col_name] = df[col_name].astype(str)
+            # Step 4 – Sort
+            df.sort_values(by=sort_columns, ascending=ascending_flags, inplace=True)
 
-        # 3. Sort
-        df.sort_values(by=sort_columns, ascending=ascending_flags, inplace=True)
-
-        # 4. Overwrite sheet with sorted data
+        # Step 5 - Overwrite worksheet
         ws.delete_rows(1, ws.max_row)
 
         ws.append(header)
@@ -419,7 +422,70 @@ class Sharepoint:
         for _, row in df.iterrows():
             ws.append(list(row))
 
-        # 5. Apply formatting
+        # Step 6 – Adjust column widths and apply wrapping if needed
+        #
+        # If column_widths is "auto":
+        # - Calculate the max content length in each column and set the column width accordingly (+2 for padding)
+        #
+        # If column_widths is a single int:
+        # - Use it as a global max width across all columns
+        # - If content fits, set width based on actual content length
+        # - If content exceeds the max width clamp column width and enable wrap_text for that column's cells
+        #
+        # Then, for wrapped cells, auto-adjust the row height:
+        # - Estimate how many lines the wrapped text would occupy and set row height accordingly to ensure all content is visible
+        if column_widths in (None, "auto"):
+            for col in ws.columns:
+                max_len = max(len(str(cell.value or "")) for cell in col)
+
+                ws.column_dimensions[col[0].column_letter].width = max_len + 2
+
+        elif isinstance(column_widths, int):
+            for col in ws.columns:
+                col_letter = col[0].column_letter
+
+                max_len = max(len(str(cell.value or "")) for cell in col)
+
+                # If content fits, auto-size
+                if max_len + 2 <= column_widths:
+                    ws.column_dimensions[col_letter].width = max_len + 2
+
+                # Else, cap width and enable wrap
+                else:
+                    ws.column_dimensions[col_letter].width = column_widths
+
+                    for cell in col:
+                        cell.alignment = Alignment(wrap_text=True)
+
+            # Here we handle row height
+            for row in ws.iter_rows():
+                max_line_count = 1
+
+                for cell in row:
+                    if cell.value and cell.alignment and cell.alignment.wrap_text:
+                        col_letter = cell.column_letter
+                        col_width = ws.column_dimensions[col_letter].width or 10
+                        chars_per_line = col_width * 1.2
+                        lines = str(cell.value).split("\n")
+                        line_count = sum(math.ceil(len(line) / chars_per_line) for line in lines)
+                        max_line_count = max(max_line_count, line_count)
+
+                ws.row_dimensions[row[0].row].height = max_line_count * 20
+
+        else:
+            raise ValueError(f"Column width provided with incorrect datatype - datatype int expected, instead column width is of datatype {type(column_widths)}")
+
+        # Step 7 - Freeze panes if needed
+        if freeze_panes:
+            ws.freeze_panes = freeze_panes
+
+        # Step 8 – Apply base formatting
+        # For each cell in the worksheet:
+        # - Apply font styling based on either a custom `font_config` (row-specific) or default to bold/italic based on row number (e.g., header rows)
+        # - Set horizontal and vertical alignment for consistent layout
+        # - Disable text wrapping by default (wrapping will be handled later if needed)
+        #
+        # This ensures a clean, uniform look across the sheet while allowing for custom styling where defined.
         for row_idx, row in enumerate(ws.iter_rows(), start=1):
             for cell in row:
                 if font_config and row_idx in font_config:
@@ -434,31 +500,17 @@ class Sharepoint:
 
                 else:
                     cell.font = Font(
-                        bold=row_idx in bold_rows,
+                        bold=row_idx in bold_rows if bold_rows else False,
                         italic=row_idx in italic_rows if italic_rows else False,
                     )
 
                 cell.alignment = Alignment(
                     horizontal=align_horizontal,
                     vertical=align_vertical,
+                    wrap_text=cell.alignment.wrap_text
                 )
 
-        # 6. Adjust column widths
-        if column_widths == "auto":
-            for col in ws.columns:
-                max_len = max(len(str(cell.value or "")) for cell in col)
-
-                ws.column_dimensions[col[0].column_letter].width = max_len + 2
-
-        elif isinstance(column_widths, dict):
-            for col_letter, width in column_widths.items():
-                ws.column_dimensions[col_letter].width = width
-
-        # 7. Freeze panes
-        if freeze_panes:
-            ws.freeze_panes = freeze_panes
-
-        # 4. Save and upload
+        # Step 9 - Save and re-upload
         temp_stream = BytesIO()
 
         wb.save(temp_stream)
