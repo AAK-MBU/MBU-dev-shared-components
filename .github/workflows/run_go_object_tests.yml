@@ -1,8 +1,10 @@
 name: Run unit tests
 
+# on:
+#   pull_request:
+#     branches: [develop]
 on:
   push
-    # branches: [main, develop]
 
 jobs:
   test:
@@ -29,4 +31,4 @@ jobs:
         run: pip install .[dev]
 
       - name: Run tests with pytest
-        run: pytest tests/go_tests/objects_tests.py
+        run: pytest tests/unit_tests/
