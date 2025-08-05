@@ -99,11 +99,18 @@ class BaseUI:
 
     def close_window(self, window_to_close: auto.WindowControl) -> None:
         """Closes specified window."""
+        window_name = window_to_close.Name
         window_to_close.SetFocus()
         window_to_close.GetWindowPattern().Close()
 
-        pop_up_window = window_to_close.WindowControl(Name="TMT - Afslut")
-        pop_up_window.SetFocus()
-        pop_up_window.ButtonControl(Name="Ja").Click(simulateMove=False, waitTime=0)
+        # Handle popup when closin main window
+        if window_name.lower().startswith("hovedvindue"):
 
-        time.sleep(2)
+            pop_up_window = window_to_close.WindowControl(Name="TMT - Afslut")
+            pop_up_window.SetFocus()
+            pop_up_window.ButtonControl(Name="Ja").Click(simulateMove=False, waitTime=0)
+
+            time.sleep(2)
+
+        else:
+            self.app_window = self.wait_for_control(search_params={'AutomationId': 'FormFront'}, control_type=auto.WindowControl)
