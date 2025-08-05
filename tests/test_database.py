@@ -7,7 +7,7 @@ import subprocess
 
 import pyodbc
 import pytest
-from mbu_dev_shared_components.database.connection import RPAConnection  # Replace with actual module name
+from mbu_dev_shared_components.database.connection import RPAConnection  
 
 # Global test configuration
 DB_ENV = "TEST"
@@ -20,7 +20,7 @@ def test_connection():
     """Test that RPAConnection successfully establishes a database connection
 
     Verifies that the `conn` and `cursor` attributes are initialized and not None
-    after creating an instance of RPAConnection.
+    after creating an instance of RPAConnection. Checks that 
     """
     with RPAConnection(db_env=DB_ENV, commit=COMMIT) as rpa_connection:
         # Assert connection is established
@@ -35,8 +35,7 @@ def test_connection():
 @pytest.mark.dependency(depends=["test_connection"])
 def test_add_get_constant():
     """
-    Adds a test constant, rolls back the transaction, and verifies that
-    the constant is not persisted in the database.
+    Adds a test constant, rolls back the transaction.
     """
     test_constant_name = f"pytest_constant_{uuid4()}"
     test_value = "temporary_value"
@@ -58,8 +57,7 @@ def test_add_get_constant():
 @pytest.mark.dependency(depends=["test_connection"])
 def test_add_get_credential():
     """
-    Adds a test credential, rolls back the transaction, and verifies that
-    the constant is not persisted in the database.
+    Adds a test credential, rolls back the transaction.
     """
     test_credential_name = f"pytest_constant_{uuid4()}"
     test_username = "test_user"
