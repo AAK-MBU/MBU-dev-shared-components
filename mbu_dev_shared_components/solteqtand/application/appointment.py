@@ -8,7 +8,7 @@ class AppointmentHandler(HandlerBase):
     """
     Handles appointment-related UI interactions.
     """
-    def get_list_of_appointments(self) -> dict: 
+    def get_list_of_appointments(self) -> dict:
         """
         Gets list of appointments as found in patient window
 

@@ -8,6 +8,7 @@ import uiautomation as auto
 from datetime import datetime
 
 from .handler_base import HandlerBase
+from .appointment import AppointmentHandler
 
 
 class DocumentHandler(HandlerBase):
@@ -118,13 +119,23 @@ class DocumentHandler(HandlerBase):
             from_date_field.SendKeys(from_date)
             to_date_field.SendKeys(to_date)
 
-            list_bookings_group = self.wait_for_control(
-                auto.GroupControl,
-                {'AutomationId': 'GroupBoxView'},
-                search_depth=13,
-            )
-            group_bookings_list = list_bookings_group.GetChildren()[0].GetChildren()[1]
-            group_bookings_list.RightClick(simulateMove=False, waitTime=0)
+            appointmenthandler = AppointmentHandler(HandlerBase)
+
+            list_bookings = appointmenthandler.get_list_of_appointments()
+
+            controls = list_bookings.get('controls') if list_bookings else None
+            if not controls or len(controls) == 0:
+                raise ValueError("No appointments found in the list.")
+            first_booking = controls[0]
+            first_booking.RightClick(simulateMove=False, waitTime=0)
+
+            # list_bookings_group = self.wait_for_control(
+            #     auto.GroupControl,
+            #     {'AutomationId': 'GroupBoxView'},
+            #     search_depth=13,
+            # )
+            # group_bookings_list = list_bookings_group.GetChildren()[0].GetChildren()[1]
+            # group_bookings_list.RightClick(simulateMove=False, waitTime=0)
 
             pop_up_right_click_menu = self.wait_for_control(
                 auto.MenuControl,
