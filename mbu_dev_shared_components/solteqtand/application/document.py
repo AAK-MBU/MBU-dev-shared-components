@@ -97,6 +97,8 @@ class DocumentHandler(HandlerBase):
         Under “Print/Flet patienter” → select template → merge → wait for Word to open,
         convert to PDF, kill WINWORD.EXE, then create_document() with the new PDF.
         """
+        folder_path = rf"{os.environ.get('USERPROFILE')}\AppData\Local\Temp\Care\TMTand"
+
         try:
             self.open_tab("Stamkort")
 
@@ -169,7 +171,6 @@ class DocumentHandler(HandlerBase):
             if new_value != metadata['templateName']:
                 raise ValueError(f"Failed to set the correct status. Expected '{metadata['templateName']}', but got '{new_value}'.")
 
-            folder_path = rf"{os.environ.get('USERPROFILE')}\AppData\Local\Temp\Care\TMTand"
             shutil.rmtree(folder_path, ignore_errors=True)
 
             form_mail_merge.PaneControl(AutomationId="ButtonMerge").GetLegacyIAccessiblePattern().DoDefaultAction()
