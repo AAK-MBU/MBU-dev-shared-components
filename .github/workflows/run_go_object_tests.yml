@@ -29,4 +29,4 @@ jobs:
         run: pip install .[dev]
 
       - name: Run tests with pytest
-        run: pytest
+        run: pytest tests/go_tests/objects_tests.py
