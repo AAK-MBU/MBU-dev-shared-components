@@ -31,4 +31,4 @@ jobs:
         run: pip install .[dev]
 
       - name: Run tests with pytest
-        run: pytest tests/unit_tests/
+        run: pytest tests/unit_tests
