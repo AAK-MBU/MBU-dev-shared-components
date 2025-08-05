@@ -171,7 +171,8 @@ class DocumentHandler(HandlerBase):
             if new_value != metadata['templateName']:
                 raise ValueError(f"Failed to set the correct status. Expected '{metadata['templateName']}', but got '{new_value}'.")
 
-            shutil.rmtree(folder_path, ignore_errors=True)
+            if os.path.exists(folder_path):
+                shutil.rmtree(folder_path, ignore_errors=True)
 
             form_mail_merge.PaneControl(AutomationId="ButtonMerge").GetLegacyIAccessiblePattern().DoDefaultAction()
 
@@ -230,7 +231,8 @@ class DocumentHandler(HandlerBase):
             print(f"Error while creating document from template: {e}")
             raise
         finally:
-            shutil.rmtree(folder_path, ignore_errors=True)
+            if os.path.exists(folder_path):
+                shutil.rmtree(folder_path, ignore_errors=True)
 
     def send_discharge_document_digitalpost(self, metadata: dict) -> None:
         """
