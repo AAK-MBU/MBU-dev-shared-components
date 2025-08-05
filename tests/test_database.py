@@ -1,4 +1,85 @@
-"""Tests..."""
+"""
+Module to test RPAConnection functionalities in the Solteq Tand system
+
+Tested functionalities:
+
+    - Establish database connection:
+        Function:
+            RPAConnection.__enter__
+        Assertion:
+            Connection and cursor are not None
+        Dependencies:
+            None
+
+    - Add and retrieve constant:
+        Function:
+            RPAConnection.add_constant, RPAConnection.get_constant
+        Assertion:
+            Constant is correctly inserted and retrieved
+        Dependencies:
+            test_connection
+
+    - Add and retrieve credential:
+        Function:
+            RPAConnection.add_credential, RPAConnection.get_credential
+        Assertion:
+            Credential is correctly inserted and retrieved
+        Dependencies:
+            test_connection
+
+    - Rollback functionality:
+        Function:
+            RPAConnection.__exit__
+        Assertion:
+            Constant added without commit is not persisted
+        Dependencies:
+            test_connection, test_add_get_constant
+
+    - Log event:
+        Function:
+            RPAConnection.log_event, RPAConnection.get_latest_log
+        Assertion:
+            Log entry is correctly inserted and retrieved
+        Dependencies:
+            None
+
+    - Heartbeat logging (stop as string):
+        Function:
+            RPAConnection.log_heartbeat, RPAConnection.get_heartbeat
+        Assertion:
+            Heartbeat status is "STOPPED"
+        Dependencies:
+            None
+
+    - Heartbeat logging (stop as boolean):
+        Function:
+            RPAConnection.log_heartbeat, RPAConnection.get_heartbeat
+        Assertion:
+            Heartbeat status is "STOPPED"
+        Dependencies:
+            None
+
+    - Run heartbeat process:
+        Function:
+            External subprocess running heartbeat_worker.py
+        Assertion:
+            Heartbeat status is "RUNNING" and updates over time
+        Dependencies:
+            None
+
+Requirements:
+    - Database environment variable `TEST` must be configured
+    - pyodbc must be installed and accessible
+    - mbu_dev_shared_components must be available in PYTHONPATH
+    - `heartbeat_worker.py` must exist in the `tests/` directory and be executable
+    - `.venv/Scripts/python` must point to the correct Python interpreter
+Further description:
+    Each test uses the RPAConnection context manager to ensure proper handling of database transactions.
+    COMMIT is set to False to test rollback behavior and avoid persistent changes to the test database.
+    Heartbeat and logging tests validate time-sensitive operations with a threshold of 0.5 seconds.
+    The heartbeat process test (`test_run_heartbeat`) runs a parallel subprocess to simulate real-time heartbeat updates.
+"""
+
 from datetime import datetime, timedelta
 import time
 from uuid import uuid4
