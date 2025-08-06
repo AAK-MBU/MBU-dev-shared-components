@@ -9,6 +9,7 @@ from datetime import datetime
 
 from .handler_base import HandlerBase
 from .appointment import AppointmentHandler
+from .app_handler import SolteqTandApp
 
 
 class DocumentHandler(HandlerBase):
@@ -119,9 +120,7 @@ class DocumentHandler(HandlerBase):
             from_date_field.SendKeys(from_date)
             to_date_field.SendKeys(to_date)
 
-            appointmenthandler = AppointmentHandler(HandlerBase)
-
-            list_bookings = appointmenthandler.get_list_of_appointments()
+            list_bookings = self.get_list_of_appointments()
 
             controls = list_bookings.get('controls') if list_bookings else None
             if not controls or len(controls) == 0:
