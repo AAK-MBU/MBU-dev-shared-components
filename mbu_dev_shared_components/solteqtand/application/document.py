@@ -8,8 +8,6 @@ import uiautomation as auto
 from datetime import datetime
 
 from .handler_base import HandlerBase
-from .appointment import AppointmentHandler
-from .app_handler import SolteqTandApp
 
 
 class DocumentHandler(HandlerBase):
