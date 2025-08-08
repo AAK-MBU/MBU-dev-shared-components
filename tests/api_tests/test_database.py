@@ -88,7 +88,7 @@ import subprocess
 
 import pyodbc
 import pytest
-from mbu_dev_shared_components.database.connection import RPAConnection  
+from mbu_dev_shared_components.database.connection import RPAConnection
 
 # Global test configuration
 DB_ENV = "TEST"
@@ -101,7 +101,7 @@ def test_connection():
     """Test that RPAConnection successfully establishes a database connection
 
     Verifies that the `conn` and `cursor` attributes are initialized and not None
-    after creating an instance of RPAConnection. Checks that 
+    after creating an instance of RPAConnection. Checks that cursor is closed afterwards.
     """
     with RPAConnection(db_env=DB_ENV, commit=COMMIT) as rpa_connection:
         # Assert connection is established
