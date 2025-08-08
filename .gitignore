@@ -161,3 +161,4 @@ cython_debug/
 
 software_tests/*
 *pytest_report.json
+*@AutomationLog
