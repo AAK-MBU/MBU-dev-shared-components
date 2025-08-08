@@ -126,14 +126,6 @@ class DocumentHandler(HandlerBase):
             first_booking = controls[0]
             first_booking.RightClick(simulateMove=False, waitTime=0)
 
-            # list_bookings_group = self.wait_for_control(
-            #     auto.GroupControl,
-            #     {'AutomationId': 'GroupBoxView'},
-            #     search_depth=13,
-            # )
-            # group_bookings_list = list_bookings_group.GetChildren()[0].GetChildren()[1]
-            # group_bookings_list.RightClick(simulateMove=False, waitTime=0)
-
             pop_up_right_click_menu = self.wait_for_control(
                 auto.MenuControl,
                 {'Name': 'Kontekst'},

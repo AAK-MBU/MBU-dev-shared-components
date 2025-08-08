@@ -2,13 +2,9 @@
 requires = ["setuptools>=65.0"]
 build-backend = "setuptools.build_meta"
 
-#[tool.setuptools]
-#package-dir = { "" = "." }
-#packages = ["mbu_dev_shared_components"]
-
 [project]
 name = "mbu_dev_shared_components"
-version = "2.4.8"  # Specify the version manually here
+version = "3.0.0"  # Specify the version manually here
 authors = [
   { name="MBU", email="rpa@mbu.aarhus.dk" },
 ]
