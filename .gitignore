@@ -160,4 +160,4 @@ cython_debug/
 #.idea/
 
 software_tests/*
-.report.json
+*pytest_report.json
