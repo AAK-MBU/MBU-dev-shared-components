@@ -5,6 +5,7 @@ import time
 import psutil
 from docx2pdf import convert
 import uiautomation as auto
+from datetime import datetime
 
 from .handler_base import HandlerBase
 
@@ -96,6 +97,8 @@ class DocumentHandler(HandlerBase):
         Under “Print/Flet patienter” → select template → merge → wait for Word to open,
         convert to PDF, kill WINWORD.EXE, then create_document() with the new PDF.
         """
+        folder_path = rf"{os.environ.get('USERPROFILE')}\AppData\Local\Temp\Care\TMTand"
+
         try:
             self.open_tab("Stamkort")
 
@@ -115,13 +118,13 @@ class DocumentHandler(HandlerBase):
             from_date_field.SendKeys(from_date)
             to_date_field.SendKeys(to_date)
 
-            list_bookings_group = self.wait_for_control(
-                auto.GroupControl,
-                {'AutomationId': 'GroupBoxView'},
-                search_depth=13,
-            )
-            group_bookings_list = list_bookings_group.GetChildren()[0].GetChildren()[1]
-            group_bookings_list.RightClick(simulateMove=False, waitTime=0)
+            list_bookings = self.get_list_of_appointments()
+
+            controls = list_bookings.get('controls') if list_bookings else None
+            if not controls or len(controls) == 0:
+                raise ValueError("No appointments found in the list.")
+            first_booking = controls[0]
+            first_booking.RightClick(simulateMove=False, waitTime=0)
 
             pop_up_right_click_menu = self.wait_for_control(
                 auto.MenuControl,
@@ -168,8 +171,8 @@ class DocumentHandler(HandlerBase):
             if new_value != metadata['templateName']:
                 raise ValueError(f"Failed to set the correct status. Expected '{metadata['templateName']}', but got '{new_value}'.")
 
-            folder_path = rf"{os.environ.get('USERPROFILE')}\AppData\Local\Temp\Care\TMTand"
-            shutil.rmtree(folder_path, ignore_errors=True)
+            if os.path.exists(folder_path):
+                shutil.rmtree(folder_path, ignore_errors=True)
 
             form_mail_merge.PaneControl(AutomationId="ButtonMerge").GetLegacyIAccessiblePattern().DoDefaultAction()
 
@@ -228,7 +231,8 @@ class DocumentHandler(HandlerBase):
             print(f"Error while creating document from template: {e}")
             raise
         finally:
-            shutil.rmtree(folder_path, ignore_errors=True)
+            if os.path.exists(folder_path):
+                shutil.rmtree(folder_path, ignore_errors=True)
 
     def send_discharge_document_digitalpost(self, metadata: dict) -> None:
         """
