@@ -39,7 +39,7 @@ from pathlib import PurePath
 
 from io import BytesIO
 
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Union
 
 from openpyxl.styles import Font, Alignment
 from openpyxl import load_workbook
@@ -268,16 +268,22 @@ class Sharepoint:
         folder_name: str = "",
         excel_file_name: str = "",
         sheet_name: str = "",
-        new_row: Dict = None,
+        new_rows: Union[Dict, List[Dict]] = None,
     ) -> None:
         """
-        • Appends a row to an existing Excel file.
+        • Appends one or more rows to an existing Excel file.
         • Sorts and formats based on provided parameters.
         """
 
+        # Ensure new_rows is a list of dicts
+        if isinstance(new_rows, dict):
+            new_rows = [new_rows]
+
+        elif not isinstance(new_rows, list) or not all(isinstance(r, dict) for r in new_rows):
+            raise TypeError("new_rows must be a dict or a list of dicts.")
+
         # 1. Pull file
         binary_file = self.fetch_file_using_open_binary(excel_file_name, folder_name)
-
         if binary_file is None:
             raise FileNotFoundError(f"File '{excel_file_name}' not found in folder '{folder_name}'.")
 
@@ -306,8 +312,11 @@ class Sharepoint:
             if all(cell is None for cell in row_values):
                 ws.delete_rows(row_idx)
 
-        # 3. Append new row to sheet
-        ws.append([new_row.get(header.value, "") for header in ws[1]])
+        # 3. Append each new row
+        headers = [header.value for header in ws[1]]
+
+        for row_dict in new_rows:
+            ws.append([row_dict.get(header, "") for header in headers])
 
         # 4. Save and upload
         temp_stream = BytesIO()
@@ -317,8 +326,6 @@ class Sharepoint:
         temp_stream.seek(0)
 
         self.upload_file_from_bytes(temp_stream.getvalue(), excel_file_name, folder_name)
-
-        print(f"✔ Added row + sorted '{sheet_name}' in '{excel_file_name}'.")
 
     def format_and_sort_excel_file(
         self,
