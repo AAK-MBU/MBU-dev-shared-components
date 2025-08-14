@@ -153,8 +153,8 @@ def test_format_and_sort_excel_file(sharepoint_api: Sharepoint):
 
     # Sort by first two columns (date, time) in descending order
     sorting_keys = [
-        {"key": "A", "ascending": False, "type": "str"},
-        {"key": "B", "ascending": False, "type": "str"},
+        {"key": "A", "ascending": False, "type": "date"},
+        {"key": "B", "ascending": False, "type": "time"},
     ]
 
     # Apply sorting and formatting
