@@ -12,7 +12,7 @@ class RPAConnection(
 ):
     """Class for running database related functions.
     Needs to be used in with-statement like:
-        rpa_conn = RPAConnectio(db_env="PROD", commit=True)
+        rpa_conn = RPAConnection(db_env="PROD", commit=True)
         with rpa_conn:
             rpa_conn.add_constant("Constant name", "Constant value")
     Initializes database connection when entering with statement
