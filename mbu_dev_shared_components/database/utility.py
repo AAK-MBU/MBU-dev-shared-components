@@ -16,7 +16,7 @@ class Utility:
         Returns:
             rpa_conn (pyodbc.Connection): The connection object to the SQL database.
         """
-        load_dotenv() # <-- NY
+        load_dotenv()
         connection_env = self.fetch_env(db_env)
         rpa_conn_string = os.getenv(connection_env)
         rpa_conn = pyodbc.connect(rpa_conn_string, autocommit=autocommit)
