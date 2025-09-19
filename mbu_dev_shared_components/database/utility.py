@@ -5,6 +5,7 @@ import json
 from typing import Dict, Union, Tuple, Any
 from dateutil import parser
 import pyodbc
+from dotenv import load_dotenv 
 
 
 class Utility:
@@ -15,6 +16,7 @@ class Utility:
         Returns:
             rpa_conn (pyodbc.Connection): The connection object to the SQL database.
         """
+        load_dotenv()
         connection_env = self.fetch_env(db_env)
         rpa_conn_string = os.getenv(connection_env)
         rpa_conn = pyodbc.connect(rpa_conn_string, autocommit=autocommit)
@@ -42,10 +44,10 @@ class Utility:
     def fetch_env(self, db_env):
         """Get env variable based on context, PROD or TEST"""
         if db_env.upper() == "PROD":
-            connection_env = "DbConnectionString"
+            connection_env = "DBCONNECTIONSTRINGPROD" 
             return connection_env
         if db_env.upper() == "TEST":
-            connection_env = "DbConnectionStringTest"
+            connection_env = "DBCONNECTIONSTRINGUDV" 
             return connection_env
 
         raise ValueError(f"arg db_env is {db_env.upper()} but should be 'PROD' or 'TEST'")
