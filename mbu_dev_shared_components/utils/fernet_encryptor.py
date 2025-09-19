@@ -15,9 +15,9 @@ class Encryptor:
     """
 
     def __init__(self):
-        self.key = os.getenv("OpenOrchestratorKey")
+        self.key = os.getenv("OPENORCHESTRATORKEY")
         if not self.key:
-            raise ValueError("Environment variable 'OpenOrchestratorKey' is not set or is empty.")
+            raise ValueError("Environment variable 'OPENORCHESTRATORKEY' is not set or is empty.")
         self.cipher_suite = self.generate_cipher_suite()
 
     def generate_cipher_suite(self) -> Fernet:
