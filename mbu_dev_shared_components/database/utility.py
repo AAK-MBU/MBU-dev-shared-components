@@ -47,7 +47,7 @@ class Utility:
             connection_env = "DBCONNECTIONSTRINGPROD" 
             return connection_env
         if db_env.upper() == "TEST":
-            connection_env = "DBCONNECTIONSTRINGUDV" 
+            connection_env = "DBCONNECTIONSTRINGDEV" 
             return connection_env
 
         raise ValueError(f"arg db_env is {db_env.upper()} but should be 'PROD' or 'TEST'")
