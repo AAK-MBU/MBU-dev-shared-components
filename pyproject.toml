@@ -49,6 +49,8 @@ sap = [
 solteqtand = [
   "uiautomation",
   "pyodbc >= 5.1.0",
+  "psutil",
+  "docx2pdf",
 ]
 utils = [
   "python-dateutil == 2.9.*",
