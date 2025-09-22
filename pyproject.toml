@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mbu_dev_shared_components"
-version = "4.0.3"
+version = "4.1.0"
 authors = [
   { name="MBU", email="rpa@mbu.aarhus.dk" },
 ]
@@ -49,6 +49,8 @@ sap = [
 solteqtand = [
   "uiautomation",
   "pyodbc >= 5.1.0",
+  "psutil",
+  "docx2pdf",
 ]
 utils = [
   "python-dateutil == 2.9.*",
