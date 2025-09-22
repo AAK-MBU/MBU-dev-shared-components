@@ -60,15 +60,16 @@ Tested functionalities:
 
 
 """
+
 import os
 import subprocess as sp
+from datetime import datetime, timedelta
 
-import pytest
 import psutil
+import pytest
 from pytest_dependency import depends
 
 from mbu_dev_shared_components.solteqtand.application.app_handler import SolteqTandApp
-
 
 SOLTEQ_APP = SolteqTandApp(
     app_path=R"C:\Program Files (x86)\TM Care\TM Tand\TMTand.exe",
@@ -78,7 +79,7 @@ SOLTEQ_APP = SolteqTandApp(
 SSN = os.getenv("SolteqTandTestPatient")
 
 
-def depends_or(request, other, scope='module'):
+def depends_or(request, other, scope="module"):
     """Function to check dependency tests with or condition"""
     item = request.node
     for o in other:
@@ -95,8 +96,8 @@ def depends_or(request, other, scope='module'):
 def ensure_app_cleanup():
     """Ensure Solteq Tand app is closed after all tests"""
     yield  # Run all tests
-    for proc in psutil.process_iter(['pid', 'name']):
-        if proc.info['name'] == 'TMTand.exe':
+    for proc in psutil.process_iter(["pid", "name"]):
+        if proc.info["name"] == "TMTand.exe":
             proc.terminate()
             try:
                 proc.wait(timeout=5)
@@ -110,8 +111,8 @@ def test_open():
     SOLTEQ_APP.start_application()
 
     # Assert that program is in running processes
-    list_processes = ['wmic', 'process', 'get', 'description']
-    assert 'TMTand.exe' in sp.check_output(list_processes).strip().decode()
+    list_processes = ["wmic", "process", "get", "description"]
+    assert "TMTand.exe" in sp.check_output(list_processes).strip().decode()
 
 
 @pytest.mark.dependency(depends=["test_open"])
@@ -122,7 +123,7 @@ def test_login():
 
     # Assert that window name starts with Hovedvindue
     window_name = "Hovedvindue - "
-    assert SOLTEQ_APP.app_window.Name.upper()[:len(window_name)] == window_name.upper()
+    assert SOLTEQ_APP.app_window.Name.upper()[: len(window_name)] == window_name.upper()
 
 
 @pytest.mark.dependency(depends=["test_login"])
@@ -133,7 +134,7 @@ def test_open_patient():
     SOLTEQ_APP.open_patient(ssn=SSN)
 
     # Assert that window name matches inputted SSN
-    assert SOLTEQ_APP.app_window.Name.replace("-", "")[:len(SSN)] == SSN
+    assert SOLTEQ_APP.app_window.Name.replace("-", "")[: len(SSN)] == SSN
 
 
 @pytest.mark.dependency(depends=["test_open_patient"])
@@ -146,7 +147,7 @@ def test_close_patient():
 
     # Assert that app returns to hovedvindue
     window_name = "Hovedvindue - "
-    assert SOLTEQ_APP.app_window.Name.upper()[:len(window_name)] == window_name.upper()
+    assert SOLTEQ_APP.app_window.Name.upper()[: len(window_name)] == window_name.upper()
 
 
 @pytest.mark.dependency(depends=["test_login"])
@@ -158,7 +159,50 @@ def test_open_aftalebog():
 
     # Assert that window name is "Aftalebog - "
     window_name = "Aftalebog - "
-    assert SOLTEQ_APP.app_window.Name.upper()[:len(window_name)] == window_name.upper()
+    assert SOLTEQ_APP.app_window.Name.upper()[: len(window_name)] == window_name.upper()
+
+
+@pytest.mark.dependency(depends=["test_open_aftalebog"])
+def test_set_dates_aftalebog():
+    """Test whether app can set dates in aftalebog"""
+    SOLTEQ_APP.start_application()
+    SOLTEQ_APP.login()
+    SOLTEQ_APP.open_from_main_menu("Aftalebog")
+    SOLTEQ_APP.open_tab("Oversigt")
+    today = datetime.now()
+    tomorrow = datetime.now() + timedelta(days=1)
+    try:
+        SOLTEQ_APP.set_date_in_aftalebog(from_date=today, to_date=tomorrow)
+    except:
+        pytest.fail("Setting dates in aftalebog failed")
+
+
+@pytest.mark.dependency(depends=["test_open_aftalebog"])
+def test_pick_appointment_types_aftalebog():
+    """Test whether app can set dates in aftalebog"""
+    SOLTEQ_APP.start_application()
+    SOLTEQ_APP.login()
+    SOLTEQ_APP.open_from_main_menu("Aftalebog")
+    SOLTEQ_APP.open_tab("Oversigt")
+    try:
+        SOLTEQ_APP.pick_appointment_types_aftalebog(
+            appointment_types="Ikke meddelt aftale"
+        )
+    except:
+        pytest.fail("Picking appoitment type in aftalebog failed")
+
+
+@pytest.mark.dependency(depends=["test_open_aftalebog"])
+def test_pick_clinic_aftalebog():
+    """Test whether app can set dates in aftalebog"""
+    SOLTEQ_APP.start_application()
+    SOLTEQ_APP.login()
+    SOLTEQ_APP.open_from_main_menu("Aftalebog")
+    SOLTEQ_APP.open_tab("Oversigt")
+    try:
+        SOLTEQ_APP.pick_clinic_aftalebog(clinic="Aarhus Tandregulering")
+    except:
+        pytest.fail("Picking appoitment type in aftalebog failed")
 
 
 @pytest.mark.dependency()
@@ -168,7 +212,10 @@ def test_close_window(request):
         depends_or(request, ["test_open_patient", "test_open_aftalebog"])
     SOLTEQ_APP.start_application()
     SOLTEQ_APP.login()
-    for method, param in {SOLTEQ_APP.open_from_main_menu: "Aftalebog", SOLTEQ_APP.open_patient: SSN}.items():
+    for method, param in {
+        SOLTEQ_APP.open_from_main_menu: "Aftalebog",
+        SOLTEQ_APP.open_patient: SSN,
+    }.items():
         try:
             method(param)
             break
@@ -184,8 +231,8 @@ def test_close_window(request):
     # Close main window after closing Aftalebog and patient assert window gone and TMTand.exe closed
     SOLTEQ_APP.close_window(SOLTEQ_APP.app_window)
     assert not SOLTEQ_APP.app_window.Exists()
-    assert 'TMTand.exe' not in [p.info['name'] for p in psutil.process_iter(['name'])]
+    assert "TMTand.exe" not in [p.info["name"] for p in psutil.process_iter(["name"])]
 
 
-if __name__ == '__main__':
-    test_close_window(None)
+if __name__ == "__main__":
+    test_pick_clinic_aftalebog()
