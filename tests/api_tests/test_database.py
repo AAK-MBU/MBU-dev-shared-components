@@ -80,14 +80,15 @@ Further description:
     The heartbeat process test (`test_run_heartbeat`) runs a parallel subprocess to simulate real-time heartbeat updates.
 """
 
-from datetime import datetime, timedelta
-import time
-from uuid import uuid4
 import socket
 import subprocess
+import time
+from datetime import datetime, timedelta
+from uuid import uuid4
 
 import pyodbc
 import pytest
+
 from mbu_dev_shared_components.database.connection import RPAConnection
 
 # Global test configuration
@@ -109,7 +110,9 @@ def test_connection():
         assert rpa_connection.cursor is not None
 
     # Assert connection is closed
-    with pytest.raises(pyodbc.ProgrammingError, match="Attempt to use a closed cursor."):
+    with pytest.raises(
+        pyodbc.ProgrammingError, match="Attempt to use a closed cursor."
+    ):
         rpa_connection.get_constant("test_uuid")
 
 
@@ -146,7 +149,9 @@ def test_add_get_credential():
 
     with RPAConnection(db_env=DB_ENV, commit=COMMIT) as rpa_connection:
         # Add constant (should be rolled back)
-        rpa_connection.add_credential(test_credential_name, test_username, test_password, datetime.now())
+        rpa_connection.add_credential(
+            test_credential_name, test_username, test_password, datetime.now()
+        )
 
         # Check that constant is added (will be rolled back after function)
         test_const = rpa_connection.get_credential(test_credential_name)
@@ -171,12 +176,14 @@ def test_rollback():
 
     with RPAConnection(db_env=DB_ENV, commit=COMMIT) as rpa_connection:
         # Try to retrieve the constant in new connection
-        with pytest.raises(ValueError, match=f"No constant found with name: {test_constant_name}"):
+        with pytest.raises(
+            ValueError, match=f"No constant found with name: {test_constant_name}"
+        ):
             rpa_connection.get_constant(test_constant_name)
 
 
 def test_log():
-    """Test log functionality """
+    """Test log functionality"""
 
     # Variables for test log row
     log_db = "journalizing.Journalize_log"
@@ -188,24 +195,21 @@ def test_log():
         now = datetime.now()
         # Attempt insertion of log_event
         rpa_connection.log_event(
-            log_db=log_db,
-            level=level,
-            message=message,
-            context=context
+            log_db=log_db, level=level, message=message, context=context
         )
         # Assert that one row is inserted
         assert rpa_connection.cursor.rowcount == 1
 
         # Get latest log
         # pylint: disable-next=W0212
-        log_row = rpa_connection.get_latest_log(
-            log_db=log_db
-        )[0]
+        log_row = rpa_connection.get_latest_log(log_db=log_db)[0]
 
         # Assert values of inserted element
         assert log_row[0] == level
         assert log_row[1] == message
-        assert abs(log_row[2]-now) < timedelta(seconds=THRES_SEC)  # Latest log was within 0.1 second of start of function
+        assert abs(log_row[2] - now) < timedelta(
+            seconds=THRES_SEC
+        )  # Latest log was within 0.1 second of start of function
         assert log_row[3] == context
 
 
@@ -222,13 +226,13 @@ def test_stop_heartbeat_str():
             stop=stop,
             servicename=servicename,
             heartbeat_interval=heartbeat_interval,
-            details=details
+            details=details,
         )
 
         heartbeat = rpa_connection.get_heartbeat(service_name=servicename)[0]
 
         assert heartbeat[0] == servicename
-        assert abs(heartbeat[1]-now) < timedelta(seconds=THRES_SEC)
+        assert abs(heartbeat[1] - now) < timedelta(seconds=THRES_SEC)
         assert heartbeat[2] == "STOPPED"
         assert heartbeat[3] == socket.gethostname()
 
@@ -246,13 +250,13 @@ def test_stop_heartbeat_bool():
             stop=stop,
             servicename=servicename,
             heartbeat_interval=heartbeat_interval,
-            details=details
+            details=details,
         )
 
         heartbeat = rpa_connection.get_heartbeat(service_name=servicename)[0]
 
         assert heartbeat[0] == servicename
-        assert abs(heartbeat[1]-now) < timedelta(seconds=THRES_SEC)
+        assert abs(heartbeat[1] - now) < timedelta(seconds=THRES_SEC)
         assert heartbeat[2] == "STOPPED"
         assert heartbeat[3] == socket.gethostname()
 
@@ -269,16 +273,16 @@ def test_run_heartbeat():
     stop = False
     now = datetime.now()
     heartbeat_process = subprocess.Popen(
-            [
-                ".venv/Scripts/python",
-                "tests/heartbeat_worker.py",
-                DB_ENV,
-                str(stop),
-                servicename,
-                str(heartbeat_interval),
-                details
-            ]
-        )
+        [
+            ".venv/Scripts/python",
+            "tests/heartbeat_worker.py",
+            DB_ENV,
+            str(stop),
+            servicename,
+            str(heartbeat_interval),
+            details,
+        ]
+    )
 
     time.sleep(heartbeat_interval)
 
@@ -287,18 +291,20 @@ def test_run_heartbeat():
 
         # Assert heartbeat is running and recent
         assert heartbeat[0] == servicename
-        assert abs(heartbeat[1]-now) < timedelta(seconds=THRES_SEC)
+        assert abs(heartbeat[1] - now) < timedelta(seconds=THRES_SEC)
         assert heartbeat[2] == "RUNNING"
         assert heartbeat[3] == socket.gethostname()
 
         # Test that heartbeat is updated by heartbeat interval time
         for i in range(5):
-            print(f"Running assertion loop {i+1}")
+            print(f"Running assertion loop {i + 1}")
             prev_heartbeat_time = heartbeat[1]
             time.sleep(heartbeat_interval)
             # Get new heartbeat and assert that it is newer than previous hearbeat
             heartbeat = rpa_connection.get_heartbeat(servicename)[0]
-            assert heartbeat[1] > prev_heartbeat_time, f"Heartbeat not updated on iteration {i+1}"
+            assert heartbeat[1] > prev_heartbeat_time, (
+                f"Heartbeat not updated on iteration {i + 1}"
+            )
 
     print("Should have finished assertion loop ")
 
@@ -311,9 +317,29 @@ def test_run_heartbeat():
             stop=True,
             servicename=servicename,
             heartbeat_interval=2,
-            details="Stop send from pytest"
+            details="Stop send from pytest",
         )
 
 
-if __name__ == '__main__':
-    pytest.main([__file__])
+def test_execute_query():
+    query = """
+        SELECT
+            *
+        FROM
+            [RPA].[rpa].[Constants]    
+    """
+    # Check that default SELECT query returns list
+    with RPAConnection(db_env="TEST", commit=False) as rpa_conn:
+        list_result = rpa_conn.execute_query(query=query)
+    assert isinstance(list_result, list)
+    # Check option to return dict
+    with RPAConnection(db_env="TEST", commit=False) as rpa_conn:
+        dict_result = rpa_conn.execute_query(query=query, return_dict=True)
+    assert isinstance(dict_result, list)
+    assert isinstance(dict_result[0], dict)
+    # Check that returns have same length
+    assert len(list_result) == len(dict_result)
+
+
+if __name__ == "__main__":
+    test_execute_query()
