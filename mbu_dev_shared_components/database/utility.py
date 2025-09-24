@@ -1,15 +1,17 @@
 """This module handles general database connection and calls"""
 
-import os
 import json
-from typing import Dict, Union, Tuple, Any
-from dateutil import parser
+import os
+from typing import Any, Dict, Tuple, Union
+
 import pyodbc
-from dotenv import load_dotenv 
+from dateutil import parser
+from dotenv import load_dotenv
 
 
 class Utility:
     """Base class handling general utilities"""
+
     def connect_to_db(self, autocommit=True, db_env="PROD") -> pyodbc.Connection:
         """Establish connection to sql database
 
@@ -22,17 +24,24 @@ class Utility:
         rpa_conn = pyodbc.connect(rpa_conn_string, autocommit=autocommit)
         return rpa_conn
 
-    def execute_query(self, query: str, params: list = None) -> pyodbc.Cursor:
+    def execute_query(
+        self, query: str, params: list = None, return_dict: bool = False
+    ) -> list | None:
         """Execute SQL query with pyodbc"""
         params = [] if not params else params
-        is_select = query.strip().upper().startswith('SELECT')
+        is_select = query.strip().upper().startswith("SELECT")
         try:
             res = self.cursor.execute(query, params)
             if is_select:
-                res = self.cursor.fetchall()
-                if len(res) == 0:
+                rows = self.cursor.fetchall()
+                if len(rows) == 0:
                     print("No results from query")
                     return None
+                if return_dict:
+                    columns = [column[0] for column in self.cursor.description]
+                    res = [dict(zip(columns, row)) for row in rows]
+                else:
+                    res = rows
                 return res
             else:
                 return None
@@ -44,15 +53,19 @@ class Utility:
     def fetch_env(self, db_env):
         """Get env variable based on context, PROD or TEST"""
         if db_env.upper() == "PROD":
-            connection_env = "DBCONNECTIONSTRINGPROD" 
+            connection_env = "DBCONNECTIONSTRINGPROD"
             return connection_env
         if db_env.upper() == "TEST":
-            connection_env = "DBCONNECTIONSTRINGDEV" 
+            connection_env = "DBCONNECTIONSTRINGDEV"
             return connection_env
 
-        raise ValueError(f"arg db_env is {db_env.upper()} but should be 'PROD' or 'TEST'")
+        raise ValueError(
+            f"arg db_env is {db_env.upper()} but should be 'PROD' or 'TEST'"
+        )
 
-    def execute_stored_procedure(self, stored_procedure: str, params: Dict[str, Tuple[type, Any]] | None = None) -> Dict[str, Union[bool, str, Any]]:
+    def execute_stored_procedure(
+        self, stored_procedure: str, params: Dict[str, Tuple[type, Any]] | None = None
+    ) -> Dict[str, Union[bool, str, Any]]:
         """
         Executes a stored procedure with the given parameters.
 
@@ -76,12 +89,12 @@ class Utility:
             "int": int,
             "float": float,
             "datetime": parser.isoparse,
-            "json": lambda x: json.dumps(x, ensure_ascii=False)
+            "json": lambda x: json.dumps(x, ensure_ascii=False),
         }
 
         try:
             if params:
-                param_placeholders = ', '.join([f"@{key} = ?" for key in params.keys()])
+                param_placeholders = ", ".join([f"@{key} = ?" for key in params.keys()])
                 param_values = []
 
                 for key, value in params.items():
@@ -92,7 +105,9 @@ class Utility:
                         else:
                             param_values.append(actual_value)
                     else:
-                        raise ValueError("Each parameter value must be a tuple of (type, actual_value).")
+                        raise ValueError(
+                            "Each parameter value must be a tuple of (type, actual_value)."
+                        )
 
                 sql = f"EXEC {stored_procedure} {param_placeholders}"
                 rows_updated = self.cursor.execute(sql, tuple(param_values))
