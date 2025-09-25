@@ -1,12 +1,16 @@
 """Base UI-Automation helper methods for SolteqTand project."""
+
 import time
+
 import uiautomation as auto
 
 
 class BaseUI:
     """Base UI-Automation helper methods."""
 
-    def find_element_by_property(self, control, control_type=None, automation_id=None, name=None, class_name=None) -> auto.Control:
+    def find_element_by_property(
+        self, control, control_type=None, automation_id=None, name=None, class_name=None
+    ) -> auto.Control:
         """
         Uses GetChildren to traverse through controls and find an element based on the specified properties.
 
@@ -24,20 +28,29 @@ class BaseUI:
 
         for child in children:
             if (
-                (control_type is None or child.ControlType == control_type) and
-                (automation_id is None or child.AutomationId == automation_id) and
-                (name is None or child.Name == name) and
-                (class_name is None or child.ClassName == class_name)
+                (control_type is None or child.ControlType == control_type)
+                and (automation_id is None or child.AutomationId == automation_id)
+                and (name is None or child.Name == name)
+                and (class_name is None or child.ClassName == class_name)
             ):
                 return child
 
-            found = self.find_element_by_property(child, control_type, automation_id, name, class_name)
+            found = self.find_element_by_property(
+                child, control_type, automation_id, name, class_name
+            )
             if found:
                 return found
 
         return None
 
-    def wait_for_control(self, control_type, search_params, search_depth=1, timeout=30, retry_interval=0.5):
+    def wait_for_control(
+        self,
+        control_type,
+        search_params,
+        search_depth=1,
+        timeout=30,
+        retry_interval=0.5,
+    ):
         """
         Waits for a given control type to become available with the specified search parameters.
 
@@ -67,9 +80,13 @@ class BaseUI:
             time.sleep(retry_interval)
             print(f"Retrying to find control: {search_params}...")
 
-        raise TimeoutError(f"Control with parameters {search_params} was not found within the {timeout} second timeout.")
+        raise TimeoutError(
+            f"Control with parameters {search_params} was not found within the {timeout} second timeout."
+        )
 
-    def wait_for_control_to_disappear(self, control_type, search_params, search_depth=1, timeout=30):
+    def wait_for_control_to_disappear(
+        self, control_type, search_params, search_depth=1, timeout=30
+    ):
         """
         Waits for a given control type to disappear with the specified search parameters.
 
@@ -95,7 +112,9 @@ class BaseUI:
             time.sleep(0.5)
             print(f"Retrying to find control: {search_params}...")
 
-        raise TimeoutError(f"Control with parameters {search_params} did not disappear within the timeout period.")
+        raise TimeoutError(
+            f"Control with parameters {search_params} did not disappear within the timeout period."
+        )
 
     def close_window(self, window_to_close: auto.WindowControl) -> None:
         """Closes specified window."""
@@ -105,7 +124,6 @@ class BaseUI:
 
         # Handle popup when closin main window
         if window_name.lower().startswith("hovedvindue"):
-
             pop_up_window = window_to_close.WindowControl(Name="TMT - Afslut")
             pop_up_window.SetFocus()
             pop_up_window.ButtonControl(Name="Ja").Click(simulateMove=False, waitTime=0)
@@ -113,4 +131,7 @@ class BaseUI:
             time.sleep(2)
 
         else:
-            self.app_window = self.wait_for_control(search_params={'AutomationId': 'FormFront'}, control_type=auto.WindowControl)
+            self.app_window = self.wait_for_control(
+                search_params={"AutomationId": "FormFront"},
+                control_type=auto.WindowControl,
+            )

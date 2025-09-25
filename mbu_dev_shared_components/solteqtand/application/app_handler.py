@@ -2,6 +2,7 @@
 
 import os
 
+import psutil
 import uiautomation as auto
 
 from .aftalebog import AftalebogHandler
@@ -158,6 +159,14 @@ class SolteqTandApp(
         try:
             if self.app_window:
                 self.close_window(self.app_window)
+                print(
+                    "\n".join([p.info["name"] for p in psutil.process_iter(["name"])])
+                )
+                assert "TMTand.exe" not in [
+                    p.info["name"] for p in psutil.process_iter(["name"])
+                ]
                 self.app_window = None
         except Exception as error:
-            print(f"Error closing Solteq Tand application window: {error}")
+            raise RuntimeError(
+                f"Error closing Solteq Tand application window: {error}"
+            ) from error
