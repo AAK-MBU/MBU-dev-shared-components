@@ -159,9 +159,6 @@ class SolteqTandApp(
         try:
             if self.app_window:
                 self.close_window(self.app_window)
-                print(
-                    "\n".join([p.info["name"] for p in psutil.process_iter(["name"])])
-                )
                 assert "TMTand.exe" not in [
                     p.info["name"] for p in psutil.process_iter(["name"])
                 ]
