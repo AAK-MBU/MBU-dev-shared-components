@@ -234,5 +234,26 @@ def test_close_window(request):
     assert "TMTand.exe" not in [p.info["name"] for p in psutil.process_iter(["name"])]
 
 
+def test_close_solteq_tand():
+    # Open application
+    SOLTEQ_APP.start_application()
+    SOLTEQ_APP.login()
+    prev_window = SOLTEQ_APP.app_window
+    # Close appliction softly
+    SOLTEQ_APP.close_solteq_tand()
+    # Assert that application is window is closed and proces is gone
+    assert not prev_window.Exists()
+    assert "TMTand.exe" not in [p.info["name"] for p in psutil.process_iter(["name"])]
+
+    # Assert error message when not being able to close
+    with pytest.raises(
+        RuntimeError, match="Error closing Solteq Tand application window"
+    ):
+        SOLTEQ_APP.start_application()
+        SOLTEQ_APP.login()
+        SOLTEQ_APP.open_from_main_menu("Aftalebog")
+        SOLTEQ_APP.close_solteq_tand()
+
+
 if __name__ == "__main__":
-    test_pick_clinic_aftalebog()
+    test_close_solteq_tand()
