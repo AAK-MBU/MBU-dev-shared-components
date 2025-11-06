@@ -1,5 +1,7 @@
 """This module contains the EDIHandler class for handling EDI portal interactions."""
+
 import time
+
 import uiautomation as auto
 
 from .handler_base import HandlerBase
@@ -18,13 +20,13 @@ class EDIHandler(HandlerBase):
             menu_edi_button = self.find_element_by_property(
                 control=self.app_window,
                 control_type=auto.ControlType.MenuItemControl,
-                name="EDI Portal"
+                name="EDI Portal",
             )
             menu_edi_button.Click(simulateMove=False, waitTime=0)
             journalforsendelse_button = self.find_element_by_property(
                 control=self.app_window,
                 control_type=auto.ControlType.MenuItemControl,
-                name="Opret journalforsendelse"
+                name="Opret journalforsendelse",
             )
             journalforsendelse_button.Click(simulateMove=False, waitTime=0)
 
@@ -62,9 +64,7 @@ class EDIHandler(HandlerBase):
 
             try:
                 next_button = self.wait_for_control(
-                    auto.ButtonControl, {"Name": "Næste"},
-                    search_depth=50,
-                    timeout=5
+                    auto.ButtonControl, {"Name": "Næste"}, search_depth=50, timeout=5
                 )
             except TimeoutError:
                 next_button = None
@@ -72,9 +72,10 @@ class EDIHandler(HandlerBase):
             if not next_button:
                 try:
                     next_button = self.wait_for_control(
-                        auto.ButtonControl, {"AutomationId": "patientInformationNextButton"},
+                        auto.ButtonControl,
+                        {"AutomationId": "patientInformationNextButton"},
                         search_depth=50,
-                        timeout=5
+                        timeout=5,
                     )
                 except TimeoutError:
                     next_button = None
@@ -87,7 +88,9 @@ class EDIHandler(HandlerBase):
             print(f"Error while clicking next button in EDI Portal: {e}")
             raise
 
-    def edi_portal_check_contractor_id(self, extern_clinic_data: dict, sleep_time: int = 5) -> dict:
+    def edi_portal_check_contractor_id(
+        self, extern_clinic_data: dict, sleep_time: int = 5
+    ) -> dict:
         """
         Checks if the contractor ID is valid in the EDI portal.
 
@@ -100,36 +103,46 @@ class EDIHandler(HandlerBase):
         """
         try:
             # Handle Hasle Torv Clinic special case
-            if extern_clinic_data[0]["contractorId"] == "477052" or extern_clinic_data[0]["contractorId"] == "470678":
+            if (
+                extern_clinic_data[0]["contractorId"] == "477052"
+                or extern_clinic_data[0]["contractorId"] == "470678"
+            ):
                 contractor_id = "485055"
                 clinic_phone_number = "86135240"
             else:
                 contractor_id = extern_clinic_data[0]["contractorId"]
                 clinic_phone_number = extern_clinic_data[0]["phoneNumber"]
 
-            self.edi_portal_click_next_button(sleep_time=2)
+            self.edi_portal_click_next_button(sleep_time=3)
+
+            root_web_area = self.wait_for_control(
+                auto.DocumentControl, {"AutomationId": "RootWebArea"}, search_depth=20
+            )
 
             class_options = [
                 "form-control filter_search",
                 "form-control filter_search valid",
             ]
-
+            search_box = None
             for class_name in class_options:
                 try:
                     search_box = self.wait_for_control(
-                        auto.EditControl,
+                        root_web_area.EditControl,
                         {"ClassName": class_name},
                         search_depth=22,
-                        timeout=1,
+                        timeout=2,
                     )
                 except TimeoutError:
                     continue
                 if search_box:
                     break
-                else:
-                    raise RuntimeError("Search box not found")
+            if not search_box:
+                raise RuntimeError("Search box not found")
+
             search_box.SetFocus()
-            search_box_value_pattern = search_box.GetPattern(auto.PatternId.ValuePattern)
+            search_box_value_pattern = search_box.GetPattern(
+                auto.PatternId.ValuePattern
+            )
             search_box_value_pattern.SetValue(contractor_id)
             search_box.SendKeys("{ENTER}")
 
@@ -137,7 +150,7 @@ class EDIHandler(HandlerBase):
 
             table_dentists = self.wait_for_control(
                 auto.TableControl,
-                {'AutomationId': 'table_id1'},
+                {"AutomationId": "table_id1"},
                 search_depth=25,
             )
             grid_pattern = table_dentists.GetPattern(auto.PatternId.GridPattern)
