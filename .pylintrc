@@ -9,3 +9,4 @@ disable =
   R0903, # Too few public methods
   R0916, # Too many boolean expressions in if statement
   R0917 # Too many positional arguments
+  R0902 # Too many instance attributes
