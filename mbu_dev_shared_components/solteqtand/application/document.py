@@ -3,11 +3,12 @@
 import os
 import shutil
 import time
-import psutil
-from psutil import NoSuchProcess, ZombieProcess, AccessDenied
-from docx2pdf import convert
-import uiautomation as auto
 from datetime import datetime
+
+import psutil
+import uiautomation as auto
+from docx2pdf import convert
+from psutil import AccessDenied, NoSuchProcess, ZombieProcess
 
 from .handler_base import HandlerBase
 
@@ -515,7 +516,7 @@ class DocumentHandler(HandlerBase):
                 auto.WindowControl,
                 {"ClassName": "AcrobatSDIWindow"},
                 search_depth=2,
-                timeout=60,
+                timeout=180,
             )
             journal_pdf_window.Name.split(" - ")[0]
             journal_pdf_window.GetWindowPattern().Close()
