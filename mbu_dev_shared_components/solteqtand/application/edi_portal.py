@@ -102,10 +102,12 @@ class EDIHandler(HandlerBase):
             dict: A dictionary containing the row count and whether the phone number matches.
         """
         try:
-            # Handle Hasle Torv Clinic special case
+            self.app_window.Maximize()
+
             contractor_id = None
             clinic_phone_number = None
 
+            # Handle Hasle Torv Clinic special case
             if (
                 extern_clinic_data[0]["contractorId"] == "477052"
                 or extern_clinic_data[0]["contractorId"] == "470678"
