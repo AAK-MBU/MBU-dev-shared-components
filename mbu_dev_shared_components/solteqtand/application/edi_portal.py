@@ -103,6 +103,9 @@ class EDIHandler(HandlerBase):
         """
         try:
             # Handle Hasle Torv Clinic special case
+            contractor_id = None
+            clinic_phone_number = None
+
             if (
                 extern_clinic_data[0]["contractorId"] == "477052"
                 or extern_clinic_data[0]["contractorId"] == "470678"
@@ -110,8 +113,16 @@ class EDIHandler(HandlerBase):
                 contractor_id = "485055"
                 clinic_phone_number = "86135240"
             else:
-                contractor_id = extern_clinic_data[0]["contractorId"]
-                clinic_phone_number = extern_clinic_data[0]["phoneNumber"]
+                contractor_id = (
+                    extern_clinic_data[0]["contractorId"]
+                    if extern_clinic_data[0]["contractorId"]
+                    else None
+                )
+                clinic_phone_number = (
+                    extern_clinic_data[0]["phoneNumber"]
+                    if extern_clinic_data[0]["phoneNumber"]
+                    else None
+                )
 
             self.edi_portal_click_next_button(sleep_time=3)
 
@@ -129,8 +140,8 @@ class EDIHandler(HandlerBase):
                     search_box = self.wait_for_control(
                         root_web_area.EditControl,
                         {"ClassName": class_name},
-                        search_depth=22,
-                        timeout=2,
+                        search_depth=50,
+                        timeout=5,
                     )
                 except TimeoutError:
                     continue
@@ -143,7 +154,9 @@ class EDIHandler(HandlerBase):
             search_box_value_pattern = search_box.GetPattern(
                 auto.PatternId.ValuePattern
             )
-            search_box_value_pattern.SetValue(contractor_id)
+            search_box_value_pattern.SetValue(
+                contractor_id if contractor_id else clinic_phone_number
+            )
             search_box.SendKeys("{ENTER}")
 
             time.sleep(sleep_time)
