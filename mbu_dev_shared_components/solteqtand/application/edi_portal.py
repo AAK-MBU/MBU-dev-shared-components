@@ -102,7 +102,12 @@ class EDIHandler(HandlerBase):
             dict: A dictionary containing the row count and whether the phone number matches.
         """
         try:
-            self.app_window.Maximize()
+            edge_window = self.wait_for_control(
+                auto.WindowControl, {"ClassName": "Chrome_WidgetWin_1"}, search_depth=3
+            )
+
+            edge_window.SetFocus()
+            edge_window.Maximize()
 
             contractor_id = None
             clinic_phone_number = None
@@ -165,8 +170,8 @@ class EDIHandler(HandlerBase):
 
             table_dentists = self.wait_for_control(
                 auto.TableControl,
-                {"AutomationId": "table_id1"},
-                search_depth=25,
+                {"AutomationId": "dtRecipients"},
+                search_depth=50,
             )
             grid_pattern = table_dentists.GetPattern(auto.PatternId.GridPattern)
             row_count = grid_pattern.RowCount
