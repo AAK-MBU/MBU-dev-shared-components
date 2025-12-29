@@ -25,6 +25,31 @@ class Constants:
             return {"constant_name": name, "value": value}
         raise ValueError(f"No constant found with name: {constant_name}")
 
+    def update_constant(self, constant_name: str, new_value: str, changed_at: datetime | None = None):
+        if not new_value:
+            raise ValueError("new_value must be provided")
+
+        if changed_at is None:
+            changed_at = datetime.now()
+
+        query = """
+            UPDATE [RPA].[rpa].[Constants]
+            SET
+                value = ?,
+                changed_at = ?
+            WHERE
+                name = ?
+        """
+
+        rows_affected = self.execute_query(
+            query,
+            [new_value, changed_at, constant_name],
+            return_rowcount=True
+        )
+
+        if rows_affected == 0:
+            raise ValueError(f"No constant found with name: {constant_name}")
+
     def add_credential(self, credential_name: str, username: str, password: str,
                        changed_at: datetime = datetime.now()):
         encryptor = Encryptor()
@@ -52,3 +77,39 @@ class Constants:
                 "encrypted_password": encrypted_password
             }
         raise ValueError(f"No credential found with name {credential_name}")
+
+    def update_credential(self, credential_name: str, new_username: str | None = None, new_password: str | None = None, changed_at: datetime | None = None):
+        if not new_username and not new_password:
+            raise ValueError("At least one of new_username or new_password must be provided")
+
+        if changed_at is None:
+            changed_at = datetime.now()
+
+        fields = []
+        values = []
+
+        if new_username:
+            fields.append("username = ?")
+            values.append(new_username)
+
+        if new_password:
+            encryptor = Encryptor()
+            encrypted_password = encryptor.encrypt(new_password)
+            fields.append("password = ?")
+            values.append(encrypted_password)
+
+        fields.append("changed_at = ?")
+        values.append(changed_at)
+
+        query = f"""
+            UPDATE [RPA].[rpa].[Credentials]
+            SET {", ".join(fields)}
+            WHERE name = ?
+        """
+
+        values.append(credential_name)
+
+        rows_affected = self.execute_query(query, values, return_rowcount=True)
+
+        if rows_affected == 0:
+            raise ValueError(f"No credential found with name: {credential_name}")
