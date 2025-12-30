@@ -41,13 +41,12 @@ class Constants:
                 name = ?
         """
 
-        rows_affected = self.execute_query(
+        self.execute_query(
             query,
-            [new_value, changed_at, constant_name],
-            return_rowcount=True
+            [new_value, changed_at, constant_name]
         )
 
-        if rows_affected == 0:
+        if not self.get_constant(constant_name):
             raise ValueError(f"No constant found with name: {constant_name}")
 
     def add_credential(self, credential_name: str, username: str, password: str,
@@ -109,7 +108,7 @@ class Constants:
 
         values.append(credential_name)
 
-        rows_affected = self.execute_query(query, values, return_rowcount=True)
+        self.execute_query(query, values)
 
-        if rows_affected == 0:
-            raise ValueError(f"No credential found with name: {credential_name}")
+        if not self.get_credential(credential_name):
+            raise ValueError(f"No constant found with name: {credential_name}")
