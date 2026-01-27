@@ -41,6 +41,10 @@ class DocumentHandler(HandlerBase):
             control_type=auto.ControlType.ListControl,
             automation_id="cleverListView1",
         )
+
+        document_list.SetFocus()
+        time.sleep(1)
+
         document_list.RightClick(simulateMove=False, waitTime=0)
 
         document_list_menu = self.wait_for_control(
