@@ -1,7 +1,7 @@
 """This module contains functionality to authenticate and health check GetOrganized api."""
 
 import requests
-from auth import get_ntlm_go_api_credentials
+from mbu_dev_shared_components.getorganized.auth import get_ntlm_go_api_credentials
 
 
 def health_check(api_endpoint: str, api_username: str, api_password: str) -> bool:
