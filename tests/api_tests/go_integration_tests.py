@@ -23,13 +23,17 @@ Required environment variables:
 
 import os
 import xml.etree.ElementTree as ET
-import requests
-import pytest
 
-from mbu_dev_shared_components.getorganized import contacts
-from mbu_dev_shared_components.getorganized import cases
-from mbu_dev_shared_components.getorganized import documents
-from mbu_dev_shared_components.getorganized import objects
+import pytest
+import requests
+
+from mbu_dev_shared_components.getorganized import (
+    api,
+    cases,
+    contacts,
+    documents,
+    objects,
+)
 
 
 # -------------------------------
@@ -60,6 +64,20 @@ def go_env():
         "go_id": _get_cfg("DADJ_GO_ID"),
         "case_id": _get_cfg("DADJ_BORGERMAPPE_SAGS_ID"),
     }
+
+
+def test_api_health_check(go_env):
+    """
+    Ensures API is running
+    """
+
+    api_ready = api.health_check(
+        api_endpoint=f"{go_env['endpoint']}/_api/web",
+        api_username=go_env["username"],
+        api_password=go_env["password"],
+    )
+
+    assert type(api_ready) is bool
 
 
 def test_authentication_success(go_env):
@@ -124,7 +142,10 @@ def test_case_metadata_structure(go_env):
 
     assert data["ows_CaseCategory"] == "Borgermappe"
 
-    assert data["ows_CCMContactData"] == f"{go_env['full_name']};#{go_env['go_id']};#{go_env['ssn']};#;#"
+    assert (
+        data["ows_CCMContactData"]
+        == f"{go_env['full_name']};#{go_env['go_id']};#{go_env['ssn']};#;#"
+    )
 
     assert data["ows_CCMContactData_CPR"] == go_env["ssn"]
 
@@ -140,7 +161,7 @@ def test_find_case_by_case_properties(go_env):
         case_type_prefix="BOR",
         person_full_name=go_env["full_name"],
         person_id=go_env["go_id"],
-        person_ssn=go_env["ssn"]
+        person_ssn=go_env["ssn"],
     )
 
     resp = cases.find_case_by_case_properties(
@@ -234,7 +255,6 @@ def _validate_modern_search_response(resp: requests.Response):
     else:
         assert len(results) == total_rows
         for doc in results:
-
             assert "title" in doc
             assert "created" in doc
             assert "caseid" in doc
