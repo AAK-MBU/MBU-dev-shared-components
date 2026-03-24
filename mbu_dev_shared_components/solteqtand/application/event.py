@@ -1,3 +1,7 @@
+"""Module for handling events in the Solteq Tand application."""
+
+import time
+
 import uiautomation as auto
 
 from .handler_base import HandlerBase
@@ -17,10 +21,8 @@ class EventHandler(HandlerBase):
             self.open_sub_tab("Hændelser")
 
             list_view = self.wait_for_control(
-                auto.ListControl,
-                {"AutomationId": "ListView1"},
-                search_depth=9
-                )
+                auto.ListControl, {"AutomationId": "ListView1"}, search_depth=9
+            )
 
             target_values = {"Afgang til klinik 751", "Stamklinik afgang", "Nej"}
             for item in list_view.GetChildren():
@@ -31,21 +33,79 @@ class EventHandler(HandlerBase):
                         break
 
             if matching_row:
-                if matching_row.GetPattern(auto.PatternId.TogglePattern).ToggleState == 0:
+                if (
+                    matching_row.GetPattern(auto.PatternId.TogglePattern).ToggleState
+                    == 0
+                ):
                     matching_row.GetPattern(auto.PatternId.TogglePattern).Toggle()
                 process_button = self.wait_for_control(
-                    auto.ButtonControl,
-                    {"Name": "Afvikl"},
-                    search_depth=10
-                    )
+                    auto.ButtonControl, {"Name": "Afvikl"}, search_depth=10
+                )
                 process_button.GetLegacyIAccessiblePattern().DoDefaultAction()
                 create_administrative_note_popup = self.wait_for_control(
                     auto.WindowControl,
                     {"Name": "Opret administrativt notat"},
-                    search_depth=3
-                    )
-                create_administrative_note_popup.ButtonControl(Name="Nej").GetLegacyIAccessiblePattern().DoDefaultAction()
+                    search_depth=3,
+                )
+                create_administrative_note_popup.ButtonControl(
+                    Name="Nej"
+                ).GetLegacyIAccessiblePattern().DoDefaultAction()
             print("Event processed")
         except Exception as e:
             print(f"Error while processing event: {e}")
             raise
+
+    def create_new_event(self, clinic_name: str, event_text: str):
+        """
+        Opens and creates a new event for the patient
+        """
+
+        try:
+            functions_button = self.find_element_by_property(
+                control=self.app_window,
+                control_type=auto.ControlType.MenuItemControl,
+                name="Funktioner",
+            )
+            functions_button.Click(simulateMove=False, waitTime=0)
+
+            henvis_patient_button = self.find_element_by_property(
+                control=self.app_window,
+                control_type=auto.ControlType.MenuItemControl,
+                name="Henvis patient",
+            )
+            henvis_patient_button.Click(simulateMove=False, waitTime=0)
+
+            time.sleep(1)
+
+            # --- Wait for Find Klinik window ---
+            clinic_window = self.wait_for_control(
+                auto.WindowControl, {"AutomationId": "FormFindClinics"}, search_depth=5
+            )
+
+            time.sleep(1)
+
+            # --- Focus the clinic list ---
+            list_control = clinic_window.ListControl(AutomationId="ListClinics")
+            list_control.SetFocus()
+
+            # Small delay to avoid sending keys too early
+            time.sleep(2)
+
+            # --- Fast selection: type name + ENTER ---
+            list_control.SendKeys(clinic_name + "{ENTER}")
+
+            # Optional: wait a moment to ensure dialog closes
+            time.sleep(1)
+
+            # --- Fast selection: type name + ENTER ---
+            list_control.SendKeys(event_text + "{ENTER}")
+
+            dialog_ok_button = self.wait_for_control(
+                auto.ButtonControl, {"Name": "OK"}, search_depth=50
+            )
+
+            dialog_ok_button.GetInvokePattern().Invoke()
+
+        except Exception as e:
+            print(f"Error while opening EDI Portal: {e}")
+            raise e
