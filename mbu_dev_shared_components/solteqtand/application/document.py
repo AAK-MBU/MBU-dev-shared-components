@@ -485,22 +485,13 @@ class DocumentHandler(HandlerBase):
         and stores it in the documentsilo.
         """
         try:
-            menu_fil_button = self.find_element_by_property(
-                control=self.app_window,
-                control_type=auto.ControlType.MenuItemControl,
-                name="Fil",
-            )
-            menu_fil_button.Click(simulateMove=False, waitTime=0)
-            print_journal_button = self.find_element_by_property(
-                control=self.app_window,
-                control_type=auto.ControlType.MenuItemControl,
-                name="Udskriv journal",
-            )
-            print_journal_button.Click(simulateMove=False, waitTime=0)
+            self.app_window.SetActive()
+            self.app_window.SendKeys("{Ctrl}j")
 
             print_journal_window = self.wait_for_control(
                 auto.WindowControl, {"AutomationId": "JournalPrintForm"}, search_depth=3
             )
+            print_journal_window.SetActive()
 
             stamkort_toggle_state = (
                 print_journal_window.CheckBoxControl(AutomationId="datacardCheckbox")
