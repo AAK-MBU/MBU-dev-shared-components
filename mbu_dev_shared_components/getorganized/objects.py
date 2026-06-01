@@ -85,19 +85,73 @@ class CaseDataJson:
             )
 
         # Could be CaseTitle, CaseCategory, CaseProfile etc.
+        # Values can be a plain string (ComparisonType defaults to "Equal") or a
+        # dict with "value" and "comparison" keys, e.g.:
+        #   {"ows_Title": {"value": "Kørsel til ", "comparison": "Contains"}}
         if field_properties:
             for field_property_key, field_property_value in field_properties.items():
+                if isinstance(field_property_value, dict):
+                    value = field_property_value["value"]
+                    comparison = field_property_value.get("comparison", "Equal")
+                else:
+                    value = field_property_value
+                    comparison = "Equal"
                 search_case_folder_data["FieldProperties"].append(
                     {
                         "InternalName": str(field_property_key),
-                        "Value": field_property_value,
+                        "Value": value,
                         "DataType": "Text",
-                        "ComparisonType": "Equal",
+                        "ComparisonType": comparison,
                         "IsMultiValue": "False"
                     }
                 )
 
         return search_case_folder_data
+
+    def simple_search_case_data_json(self, case_type_prefix: CaseTypePrefix, field_properties: dict, returned_cases_number: str = "1", exclude_deleted: bool = True) -> dict:
+        """
+        Creates a minimal search payload with only the provided field properties — no
+        contact data is injected. Use this when you need to search by a single arbitrary
+        field (e.g. ows_Title Contains "Kørsel til ") without tying the search to a citizen.
+
+        Parameters:
+        case_type_prefix (CaseTypePrefix): Case type prefix to scope the search.
+        field_properties (dict): Mapping of InternalName → value or
+            InternalName → {"value": ..., "comparison": ...}.
+            Comparison defaults to "Equal" when a plain string is provided.
+        returned_cases_number (str): Maximum number of results to return.
+        exclude_deleted (bool): Whether to exclude deleted cases.
+
+        Returns:
+        dict: Search payload ready to pass to find_case_by_case_properties().
+        """
+
+        search_data = {
+            "FieldProperties": [],
+            "CaseTypePrefixes": [case_type_prefix],
+            "LogicalOperator": "AND",
+            "ExcludeDeletedCases": str(exclude_deleted),
+            "ReturnCasesNumber": returned_cases_number,
+        }
+
+        for internal_name, field_value in field_properties.items():
+            if isinstance(field_value, dict):
+                value = field_value["value"]
+                comparison = field_value.get("comparison", "Equal")
+            else:
+                value = field_value
+                comparison = "Equal"
+            search_data["FieldProperties"].append(
+                {
+                    "InternalName": internal_name,
+                    "Value": value,
+                    "DataType": "Text",
+                    "ComparisonType": comparison,
+                    "IsMultiValue": "False",
+                }
+            )
+
+        return search_data
 
     def search_citizen_folder_data_json(self, case_type_prefix: CaseTypePrefix, person_full_name: str, person_id: str, person_ssn: str) -> str:
         """
