@@ -183,7 +183,7 @@ class EDIHandler(HandlerBase):
 
             if row_count > 0:
                 for row in range(row_count):
-                    phone_number = grid_pattern.GetItem(row, 4).Name
+                    phone_number = grid_pattern.GetItem(row, 5).Name
                     if phone_number == clinic_phone_number:
                         is_phone_number_match = True
                         break
