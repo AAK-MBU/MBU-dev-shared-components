@@ -25,16 +25,15 @@ class JournalNoteHandler(HandlerBase):
         Raises:
             ValueError: If no department journal is found starting with the given value.
         """
-
         combobox = self.app_window.ComboBoxControl(AutomationId="cmbDepartmentJournals")
         combobox.SetFocus()
 
-        # Expand the combobox to load all options
         expand_pattern = combobox.GetExpandCollapsePattern()
         expand_pattern.Expand()
 
-        # Find the item that starts with the department string
-        for item in combobox.GetChildren():
+        # Items are in a ListControl inside the combobox
+        list_control = combobox.ListControl()
+        for item in list_control.GetChildren():
             if item.Name.startswith(department):
                 item.Click(simulateMove=False, waitTime=0)
                 return
