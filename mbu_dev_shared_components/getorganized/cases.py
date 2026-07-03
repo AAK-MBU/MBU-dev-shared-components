@@ -24,6 +24,33 @@ def get_case_metadata(api_endpoint: str, api_username: str, api_password: str) -
     return response
 
 
+def open_case(case_id: str, api_endpoint: str, api_username: str, api_password: str, reason: str = None) -> requests.Response:
+    """
+    Sends a POST request to reopen a closed case in GO.
+
+    Parameters:
+    case_id (str): The unique identifier of the case to reopen, e.g. 'EMN-2019-00023'.
+    api_endpoint (str): GetOrganized API endpoint, e.g. '{base_url}/_goapi/Cases/OpenCase'.
+    api_username (str): The API username for GetOrganized API.
+    api_password (str): The API password for GetOrganized API.
+    reason (str, optional): Reason for reopening the case.
+
+    Returns:
+    requests.Response: The response object from the API.
+
+    Raises:
+    requests.RequestException: If the HTTP request fails for any reason.
+    """
+    headers = {"Content-Type": "application/json"}
+    payload = {"CaseId": case_id}
+    if reason:
+        payload["Reason"] = reason
+
+    response = requests.request(method='POST', url=api_endpoint, headers=headers, json=payload, auth=get_ntlm_go_api_credentials(api_username, api_password), timeout=60)
+
+    return response
+
+
 def find_case_by_case_properties(case_data: str, api_endpoint: str, api_username: str, api_password: str) -> requests.Response:
     """
     Sends a POST request to search for cases based on specific case properties provided in `case_data`.
