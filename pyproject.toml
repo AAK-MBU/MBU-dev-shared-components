@@ -19,7 +19,7 @@ license = "MIT"
 dependencies = [
   "cryptography >= 43.0.0",
   "pyodbc >= 5.1.0",
-  "python-dateutil == 2.9.*",
+  "python-dateutil >= 2.9,< 3.1",
   "dotenv",
 ]
 
@@ -54,7 +54,7 @@ solteqtand = [
   "docx2pdf",
 ]
 utils = [
-  "python-dateutil == 2.9.*",
+  "python-dateutil >= 2.9,< 3.1",
   "cryptography >= 43.0.0",
 ]
 dev = [
